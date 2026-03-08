@@ -44,11 +44,11 @@ export function Home() {
     });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
-      <header className="sticky top-0 z-10 bg-slate-950/90 backdrop-blur border-b border-slate-800">
-        <div className="max-w-lg mx-auto px-4 py-4">
-          <h1 className="text-xl font-bold text-slate-100">Cashback Hunter</h1>
-          <div className="mt-3">
+    <div className="min-h-screen bg-violet-50/50 text-slate-800">
+      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+        <div className="max-w-lg mx-auto px-4 py-2">
+          <h1 className="text-lg font-bold text-slate-800">Cashback Hunter</h1>
+          <div className="mt-2">
             <MonthSelector value={selectedMonth} onChange={setSelectedMonth} />
           </div>
         </div>
@@ -56,16 +56,16 @@ export function Home() {
 
       <main className="max-w-lg mx-auto px-4 py-6">
         {todayReminder && (
-          <div className="mb-4 p-3 bg-amber-900/30 border border-amber-700/50 rounded-xl text-amber-200 text-sm">
+          <div className="mb-4 p-3 bg-amber-100 border border-amber-300 rounded-xl text-amber-800 text-sm">
             Today: Выбери кэшбэки
-            <Link to="/add" className="block mt-1 font-medium text-amber-400 hover:underline">
+            <Link to="/add" className="block mt-1 font-medium text-amber-600 hover:underline">
               Add cashback →
             </Link>
           </div>
         )}
 
         {error && (
-          <p className="mb-4 text-red-400 text-sm">
+          <p className="mb-4 text-red-600 text-sm">
             {error}
             <span className="block mt-1 text-slate-500 text-xs">
               Check network and API (Settings → Check API). If on mobile data, try Wi‑Fi or vice versa.
@@ -76,11 +76,11 @@ export function Home() {
         {loading ? (
           <p className="text-slate-500">Loading...</p>
         ) : categorySummaries.length === 0 ? (
-          <div className="text-center py-12 text-slate-500">
+          <div className="text-center py-12 text-slate-600">
             <p className="mb-4">No cashback data for this month.</p>
             <Link
               to="/add"
-              className="inline-block py-2.5 px-5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl"
+              className="inline-block py-2.5 px-5 bg-violet-500 hover:bg-violet-600 text-white font-medium rounded-xl"
             >
               Add cashback
             </Link>
@@ -125,7 +125,7 @@ export function Home() {
 
       <BottomNav />
 
-      <div className="h-16" />
+      <div className="h-24" />
 
       <InstallPrompt />
 
