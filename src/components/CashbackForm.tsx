@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { resolveCategoryName } from '../lib/synonyms';
 import { useStore } from '../store';
 
@@ -24,6 +24,11 @@ export function CashbackForm({
   onSaved,
 }: Props) {
   const [rows, setRows] = useState<CashbackRow[]>(initialRows);
+
+  useEffect(() => {
+    if (initialRows.length > 0) setRows(initialRows);
+  }, [initialRows]);
+
   const [categoryInput, setCategoryInput] = useState('');
   const [percentageInput, setPercentageInput] = useState('');
   const [saving, setSaving] = useState(false);
