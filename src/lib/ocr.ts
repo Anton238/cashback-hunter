@@ -76,12 +76,23 @@ function parseOcrText(text: string): OcrResult[] {
   return results;
 }
 
+const OCR_TIMEOUT_MS = 90_000;
+
 export async function runOcr(file: File): Promise<OcrResult[]> {
   const { createWorker } = await import('tesseract.js');
   const processedImage = await preprocessCanvas(file);
-  const worker = await createWorker('rus', 1, { logger: () => {} });
+  const workerPath = `${import.meta.env.BASE_URL}tesseract-worker.min.js`;
+  const worker = await createWorker('rus', 1, {
+    logger: () => {},
+    workerPath,
+    workerBlobURL: false,
+  });
   try {
-    const { data: { text } } = await worker.recognize(processedImage);
+    const recognizePromise = worker.recognize(processedImage);
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('OCR timed out. Try a smaller image or check your connection.')), OCR_TIMEOUT_MS)
+    );
+    const { data: { text } } = await Promise.race([recognizePromise, timeoutPromise]);
     return parseOcrText(text);
   } finally {
     await worker.terminate();

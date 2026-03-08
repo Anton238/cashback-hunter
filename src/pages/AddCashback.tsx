@@ -67,7 +67,11 @@ export function AddCashback() {
           percentage: r.percentage % 1 === 0 ? String(r.percentage) : r.percentage.toFixed(1),
         });
       }
-      if (rows.length > 0) setPrefillRows(rows);
+      if (rows.length > 0) {
+        setPrefillRows(rows);
+      } else {
+        setUploadError('Recognition finished. No cashback lines found in the image.');
+      }
     } catch (err) {
       setUploadError((err as Error).message);
     } finally {

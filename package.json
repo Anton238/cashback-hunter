@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "postinstall": "cp node_modules/tesseract.js/dist/worker.min.js public/tesseract-worker.min.js 2>/dev/null || true",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "generate-pwa-icons": "pwa-asset-generator public/pwa-icon-source.png public/icons --icon-only --type png --background \"#0f172a\" && cp public/icons/manifest-icon-192.maskable.png public/icons/icon-192.png && cp public/icons/manifest-icon-512.maskable.png public/icons/icon-512.png",
