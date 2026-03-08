@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { usePush } from '../hooks/usePush';
+import { BottomNav } from '../components/BottomNav';
 import { apiPush, apiHealth, apiBanks, apiCategories, apiCashback, apiSynonyms } from '../lib/api';
 import { API_BASE } from '../lib/constants';
 import { useStore } from '../store';
 
 export function Settings() {
-  const { state, subscribe, unsubscribe } = usePush();
-  const [schedule, setSchedule] = useState<{ day: number; banks: string[] }[]>([]);
+  const { state, subscribe, unsubscribe, getEndpoint } = usePush();
+  const [schedule, setSchedule] = useState<{ day: number }[]>([]);
+  const [testNotify, setTestNotify] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle');
+  const [testNotifyError, setTestNotifyError] = useState<string | null>(null);
   const [apiStatus, setApiStatus] = useState<'idle' | 'checking' | 'ok' | 'error'>('idle');
   const [apiError, setApiError] = useState<string | null>(null);
   const [dataCheck, setDataCheck] = useState<{ banks?: string; categories?: string; cashback?: string } | null>(null);
@@ -65,6 +67,24 @@ export function Settings() {
         setApiStatus('error');
         setApiError(err.message);
       });
+  };
+
+  const sendTestNotification = async () => {
+    setTestNotify('sending');
+    setTestNotifyError(null);
+    try {
+      const endpoint = await getEndpoint();
+      if (!endpoint) {
+        setTestNotifyError('Enable reminders first');
+        setTestNotify('error');
+        return;
+      }
+      await apiPush.test(endpoint);
+      setTestNotify('ok');
+    } catch (err) {
+      setTestNotifyError((err as Error).message);
+      setTestNotify('error');
+    }
   };
 
   const checkDataEndpoints = async () => {
@@ -154,14 +174,30 @@ export function Settings() {
             </button>
           )}
           {state === 'subscribed' && (
-            <div className="flex items-center gap-3">
-              <span className="text-emerald-400 text-sm">Reminders enabled</span>
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <span className="text-emerald-400 text-sm">Reminders enabled</span>
+                <button
+                  onClick={unsubscribe}
+                  className="py-1.5 px-3 text-slate-400 hover:text-slate-200 text-sm rounded-lg border border-slate-600"
+                >
+                  Disable
+                </button>
+              </div>
               <button
-                onClick={unsubscribe}
-                className="py-1.5 px-3 text-slate-400 hover:text-slate-200 text-sm rounded-lg border border-slate-600"
+                type="button"
+                onClick={sendTestNotification}
+                disabled={testNotify === 'sending'}
+                className="py-2.5 px-4 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-medium rounded-xl"
               >
-                Disable
+                {testNotify === 'sending' ? 'Sending...' : 'Test notification'}
               </button>
+              {testNotify === 'ok' && (
+                <p className="text-emerald-400 text-sm">Test notification sent. Check your device.</p>
+              )}
+              {testNotify === 'error' && testNotifyError && (
+                <p className="text-red-400 text-sm">Error: {testNotifyError}</p>
+              )}
             </div>
           )}
         </section>
@@ -250,26 +286,19 @@ export function Settings() {
           <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">
             Reminder schedule
           </h2>
-          <p className="text-slate-500 text-sm mb-3">Day of month → banks to update</p>
+          <p className="text-slate-500 text-sm mb-3">One reminder on the last day of each month: «Выбери кэшбэки».</p>
           <ul className="space-y-2">
-            {schedule.map(({ day, banks }) => (
+            {schedule.map(({ day }) => (
               <li key={day} className="py-2 px-3 bg-slate-800 rounded-lg text-sm">
-                <span className="text-slate-400">Day {day}:</span>{' '}
-                <span className="text-slate-200">{banks.join(', ')}</span>
+                <span className="text-slate-400">Day {day}</span>
+                <span className="text-slate-200"> (last day of month)</span>
               </li>
             ))}
           </ul>
         </section>
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 safe-area-pb">
-        <div className="max-w-lg mx-auto flex">
-          <Link to="/" className="flex-1 py-3 text-center text-slate-400 hover:text-slate-200">Home</Link>
-          <Link to="/add" className="flex-1 py-3 text-center text-slate-400 hover:text-slate-200">Add</Link>
-          <Link to="/banks" className="flex-1 py-3 text-center text-slate-400 hover:text-slate-200">Banks</Link>
-          <Link to="/settings" className="flex-1 py-3 text-center text-indigo-400 font-medium">Settings</Link>
-        </div>
-      </nav>
+      <BottomNav />
       <div className="h-16" />
     </div>
   );

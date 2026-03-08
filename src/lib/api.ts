@@ -126,8 +126,10 @@ export const apiPush = {
     request<{ success: boolean }>('/push/subscribe', { method: 'POST', body: JSON.stringify(sub) }),
   unsubscribe: (endpoint: string) =>
     request<{ success: boolean }>('/push/subscribe', { method: 'DELETE', body: JSON.stringify({ endpoint }) }),
-  scheduleToday: () => request<{ banks: string[] }>('/push/schedule/today'),
-  schedule: () => request<{ day: number; banks: string[] }[]>('/push/schedule'),
+  scheduleToday: () => request<{ reminder: boolean }>('/push/schedule/today'),
+  schedule: () => request<{ day: number }[]>('/push/schedule'),
+  test: (endpoint: string) =>
+    request<{ success: boolean }>('/push/test', { method: 'POST', body: JSON.stringify({ endpoint }) }),
 };
 
 // Группировка кэшбэков по категориям

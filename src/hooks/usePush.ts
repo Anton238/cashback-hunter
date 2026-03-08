@@ -62,5 +62,11 @@ export function usePush() {
     }
   }, []);
 
-  return { state, subscribe, unsubscribe };
+  const getEndpoint = useCallback(async (): Promise<string | null> => {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    return sub?.endpoint ?? null;
+  }, []);
+
+  return { state, subscribe, unsubscribe, getEndpoint };
 }

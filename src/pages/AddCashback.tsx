@@ -6,6 +6,7 @@ import { getDefaultMonth } from '../lib/months';
 import type { CashbackRow } from '../components/CashbackForm';
 import { MonthSelector } from '../components/MonthSelector';
 import { CashbackForm } from '../components/CashbackForm';
+import { BottomNav } from '../components/BottomNav';
 import { useStore } from '../store';
 import { apiCategories } from '../lib/api';
 
@@ -159,22 +160,7 @@ export function AddCashback() {
         )}
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 safe-area-pb">
-        <div className="max-w-lg mx-auto flex">
-          <a href="/" className="flex-1 py-3 text-center text-slate-400 hover:text-slate-200">
-            Home
-          </a>
-          <a href="/add" className="flex-1 py-3 text-center text-indigo-400 font-medium">
-            Add
-          </a>
-          <a href="/banks" className="flex-1 py-3 text-center text-slate-400 hover:text-slate-200">
-            Banks
-          </a>
-          <a href="/settings" className="flex-1 py-3 text-center text-slate-400 hover:text-slate-200">
-            Settings
-          </a>
-        </div>
-      </nav>
+      <BottomNav />
       <div className="h-16" />
     </div>
   );

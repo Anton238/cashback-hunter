@@ -7,6 +7,7 @@ import { MonthSelector } from '../components/MonthSelector';
 import { CategoryCard } from '../components/CategoryCard';
 import { CategoryModal } from '../components/CategoryModal';
 import { InstallPrompt } from '../components/InstallPrompt';
+import { BottomNav } from '../components/BottomNav';
 import { apiPush } from '../lib/api';
 
 export function Home() {
@@ -18,7 +19,7 @@ export function Home() {
   const refreshAll = useStore(s => s.refreshAll);
 
   const [modalSummary, setModalSummary] = useState<CategorySummary | null>(null);
-  const [todayBanks, setTodayBanks] = useState<string[]>([]);
+  const [todayReminder, setTodayReminder] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export function Home() {
   }, []);
 
   useEffect(() => {
-    apiPush.scheduleToday().then(({ banks }) => setTodayBanks(banks)).catch(() => {});
+    apiPush.scheduleToday().then(({ reminder }) => setTodayReminder(reminder)).catch(() => {});
   }, []);
 
   const synonymsMap = useStore(s => s.getSynonymsMap());
@@ -53,9 +54,9 @@ export function Home() {
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-6">
-        {todayBanks.length > 0 && (
+        {todayReminder && (
           <div className="mb-4 p-3 bg-amber-900/30 border border-amber-700/50 rounded-xl text-amber-200 text-sm">
-            Today: update cashback for {todayBanks.join(', ')}
+            Today: Выбери кэшбэки
             <Link to="/add" className="block mt-1 font-medium text-amber-400 hover:underline">
               Add cashback →
             </Link>
@@ -121,34 +122,7 @@ export function Home() {
         )}
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 safe-area-pb">
-        <div className="max-w-lg mx-auto flex">
-          <Link
-            to="/"
-            className="flex-1 py-3 text-center text-indigo-400 font-medium"
-          >
-            Home
-          </Link>
-          <Link
-            to="/add"
-            className="flex-1 py-3 text-center text-slate-400 hover:text-slate-200"
-          >
-            Add
-          </Link>
-          <Link
-            to="/banks"
-            className="flex-1 py-3 text-center text-slate-400 hover:text-slate-200"
-          >
-            Banks
-          </Link>
-          <Link
-            to="/settings"
-            className="flex-1 py-3 text-center text-slate-400 hover:text-slate-200"
-          >
-            Settings
-          </Link>
-        </div>
-      </nav>
+      <BottomNav />
 
       <div className="h-16" />
 

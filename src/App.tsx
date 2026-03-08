@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Home } from './pages/Home';
 import { AddCashback } from './pages/AddCashback';
 import { Banks } from './pages/Banks';
+import { Arrange } from './pages/Arrange';
 import { Settings } from './pages/Settings';
 
 export function App() {
@@ -11,6 +12,7 @@ export function App() {
         <Route path="/" element={<Home />} />
         <Route path="/add" element={<AddCashback />} />
         <Route path="/banks" element={<Banks />} />
+        <Route path="/arrange" element={<Arrange />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
     </BrowserRouter>

@@ -64,6 +64,8 @@ export const CATEGORY_KEYWORD_MAP: Record<string, string[]> = {
   'Одежда': ['одежд', 'обувь', 'одежды', 'fashion', 'cloth'],
 };
 
+export const BANK_PRIORITY: string[] = ['Tbank', 'Яндекс'];
+
 export const DEFAULT_BANKS: { name: string; iconUrl: string }[] = [
   { name: 'Tbank', iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/17/T-Bank_RU_logo.svg' },
   { name: 'Яндекс', iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4f/Yandex_icon.svg' },
@@ -81,8 +83,24 @@ const BANK_ICON_MAP: Record<string, string> = Object.fromEntries(
   DEFAULT_BANKS.map(b => [b.name.toLowerCase().trim(), b.iconUrl]),
 );
 
+const BANK_NAME_ALIASES: Record<string, string> = {
+  'тинькофф': 'tbank',
+  'тинькофф банк': 'tbank',
+  'tinkoff': 'tbank',
+  'tinkoff bank': 'tbank',
+  'сбер': 'сбербанк',
+  'сбербанк россии': 'сбербанк',
+  'газпромбанк': 'газпром',
+  'мтс банк': 'мтс',
+  'озон банк': 'озон',
+};
+
 export function getBankIconUrl(bankName: string): string | undefined {
   if (!bankName?.trim()) return undefined;
   const key = bankName.trim().toLowerCase();
-  return BANK_ICON_MAP[key] ?? DEFAULT_BANKS.find(b => key.includes(b.name.toLowerCase()) || b.name.toLowerCase().includes(key))?.iconUrl;
+  const normalized = BANK_NAME_ALIASES[key] ?? key;
+  return BANK_ICON_MAP[normalized] ?? DEFAULT_BANKS.find(b => {
+    const n = b.name.toLowerCase();
+    return normalized.includes(n) || n.includes(normalized);
+  })?.iconUrl;
 }
