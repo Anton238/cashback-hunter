@@ -1,0 +1,1 @@
+This folder contains the built output assets for the worker "cashback-hunter-api" generated at 2026-03-08T11:50:03.012Z.
