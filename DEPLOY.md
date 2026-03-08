@@ -187,11 +187,12 @@ node -e "const w=require('web-push'); const k=w.generateVAPIDKeys(); console.log
 - **Build command:** `npm run build`.
 - **Build output directory:** `dist`.
 - **Root directory:** оставь пустым.
-- **Environment variables (optional):**  
-  Если фронт будет открываться по другому домену, чем Worker, добавь переменную:
-  - Name: `VITE_API_URL`
-  - Value: `https://cashback-hunter-api.ТВОЙ_SUBDOMAIN.workers.dev`  
-  (подставь свой subdomain из настроек Worker; после первого деплоя Worker URL будет виден в дашборде).
+- **Environment variables (обязательно для работы приложения):**  
+  Фронт на Pages и API (Worker) на разных доменах, поэтому нужно явно указать URL Worker. В **Variables and Secrets** добавь переменную для окружения **Production**:
+  - **Name:** `VITE_API_URL`
+  - **Value:** `https://cashback-hunter-api.antonsorokin238.workers.dev`  
+  (подставь свой Worker URL из дашборда: Workers & Pages → cashback-hunter-api → в Overview указан домен вида `cashback-hunter-api.ИМЯ.workers.dev`).  
+  Без этой переменной запросы уйдут на `/api` на самом Pages и приложение выдаст ошибку «Unexpected token '<'».
 
 Нажми **Save and Deploy**. Дождись окончания сборки. Сайт появится по адресу вида `https://cashback-hunter.pages.dev` (или как укажет Cloudflare).
 
@@ -266,6 +267,51 @@ git push origin main
 - **На сайте старая версия:** подожди 2–3 минуты; обнови страницу с принудительным сбросом кэша (Ctrl+Shift+R / Cmd+Shift+R) или открой в режиме инкогнито.
 
 Дополнительно в проекте есть **README.md** с техническими деталями и локальной разработкой.
+
+---
+
+## Полностью локальный запуск (без доступа к Cloudflare)
+
+Если до `*.workers.dev` или `*.pages.dev` нет доступа (сеть, блокировка), можно поднять и фронт, и API у себя.
+
+1. В корне проекта в **.env.local** должно быть: `VITE_API_URL=http://localhost:8787` (уже настроено для локального API).
+2. **Терминал 1 — API:**  
+   `cd worker && npx wrangler dev`  
+   Дождись сообщения вида `Ready on http://localhost:8787`. Локально wrangler подключается к твоей D1 (remote) и к секретам Cloudflare, поэтому нужен залогиненный `wrangler login` или `CLOUDFLARE_API_TOKEN`.
+3. **Терминал 2 — фронт:**  
+   из корня проекта: `npm run dev`  
+   Открой в браузере **http://localhost:5173**.
+4. Запросы пойдут на локальный Worker (localhost:8787), данные — из твоей D1 в Cloudflare.
+
+Чтобы снова тестировать против задеплоенного API, в **.env.local** поменяй на `VITE_API_URL=https://cashback-hunter-api.<твой-поддомен>.workers.dev` или удали `.env.local`.
+
+---
+
+## Проверка настроек через CLI
+
+Из корня проекта можно проверить настройки Cloudflare без дашборда:
+
+```bash
+./scripts/check-cloudflare.sh
+```
+
+Или вручную: `npx wrangler whoami`, `npx wrangler pages project list`, `npx wrangler pages deployment list --project-name=cashback-hunter`, `cd worker && npx wrangler secret list`. Конфиг Pages (build dir, env vars) скачивается в корневой `wrangler.toml` командой: `npx wrangler pages download config cashback-hunter`.
+
+---
+
+## Как смотреть логи в Cloudflare (дебаг)
+
+### Worker (API)
+
+1. **Workers & Pages** → выбери Worker **cashback-hunter-api** → вкладка **Settings**.
+2. В блоке **Observability** включи **Workers Logs** (или **Real-time Logs**): нажми **Edit** → включи переключатель → сохрани.
+3. Дальше либо открой **Logs** в сайдбаре (Live tail), либо **Overview** → внизу бывают последние логи.
+4. В логах будут строки вида: `[Worker] GET /api/banks Origin: https://cashback-hunter.pages.dev` — видно, доходит ли запрос до Worker и с каким Origin. Если запросов нет — фронт ходит не на Worker (проверь `VITE_API_URL` в Pages). Если есть 404/500 — смотри тело ответа и биндинги (D1, секреты).
+
+### Pages (фронт)
+
+- **Deployments** → выбери деплой → **Build logs**: только логи сборки (ошибки `npm run build`).
+- Рантайм-логи в браузере: открой сайт → F12 → вкладка **Network**: смотри, на какой URL уходят запросы (должен быть Worker `*.workers.dev`), статус и ответ. Вкладка **Console** — ошибки JS («Unexpected token '<'» значит в ответ пришёл HTML вместо JSON).
 
 ---
 

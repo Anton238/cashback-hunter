@@ -1,15 +1,32 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePush } from '../hooks/usePush';
-import { apiPush } from '../lib/api';
+import { apiPush, apiHealth } from '../lib/api';
+import { API_BASE } from '../lib/constants';
 
 export function Settings() {
   const { state, subscribe, unsubscribe } = usePush();
   const [schedule, setSchedule] = useState<{ day: number; banks: string[] }[]>([]);
+  const [apiStatus, setApiStatus] = useState<'idle' | 'checking' | 'ok' | 'error'>('idle');
+  const [apiError, setApiError] = useState<string | null>(null);
 
   useEffect(() => {
     apiPush.schedule().then(setSchedule).catch(() => {});
   }, []);
+
+  const checkApi = () => {
+    setApiStatus('checking');
+    setApiError(null);
+    apiHealth
+      .check()
+      .then(() => {
+        setApiStatus('ok');
+      })
+      .catch((err: Error) => {
+        setApiStatus('error');
+        setApiError(err.message);
+      });
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
@@ -20,6 +37,30 @@ export function Settings() {
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-6 space-y-8">
+        <section>
+          <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">
+            API connection
+          </h2>
+          <p className="text-slate-500 text-sm mb-3">
+            If cashbacks do not load (e.g. “Load failed”), check whether the app can reach the API.
+          </p>
+          <p className="text-slate-500 text-xs mb-2 font-mono break-all">{API_BASE}</p>
+          <button
+            type="button"
+            onClick={checkApi}
+            disabled={apiStatus === 'checking'}
+            className="py-2.5 px-4 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-medium rounded-xl"
+          >
+            {apiStatus === 'checking' ? 'Checking...' : 'Check API'}
+          </button>
+          {apiStatus === 'ok' && (
+            <p className="mt-2 text-emerald-400 text-sm">API is reachable.</p>
+          )}
+          {apiStatus === 'error' && apiError && (
+            <p className="mt-2 text-red-400 text-sm">Error: {apiError}</p>
+          )}
+        </section>
+
         <section>
           <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">
             Notifications

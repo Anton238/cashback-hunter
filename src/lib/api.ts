@@ -121,6 +121,10 @@ export const apiCashback = {
     request<{ success: boolean; categoryDeleted: boolean }>(`/cashback/${id}`, { method: 'DELETE' }),
 };
 
+export const apiHealth = {
+  check: () => request<{ ok: boolean }>('/api/health'),
+};
+
 // Push
 export const apiPush = {
   getVapidKey: () => request<{ key: string }>('/push/vapid-public-key'),

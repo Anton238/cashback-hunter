@@ -62,7 +62,12 @@ export function Home() {
         )}
 
         {error && (
-          <p className="mb-4 text-red-400 text-sm">{error}</p>
+          <p className="mb-4 text-red-400 text-sm">
+            {error}
+            <span className="block mt-1 text-slate-500 text-xs">
+              Check network and API (Settings → Check API). If on mobile data, try Wi‑Fi or vice versa.
+            </span>
+          </p>
         )}
 
         {loading ? (
