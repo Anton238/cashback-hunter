@@ -1,4 +1,5 @@
 import type { CategorySummary } from '../lib/api';
+import { BankIcon } from './BankIcon';
 
 interface Props {
   summary: CategorySummary;
@@ -8,9 +9,10 @@ interface Props {
 export function CategoryCard({ summary, onClick }: Props) {
   const pct = summary.max_percentage;
   const color =
-    pct >= 10 ? 'text-emerald-400' :
-    pct >= 5  ? 'text-yellow-400' :
-    'text-slate-300';
+    pct > 5 ? 'text-orange-400' :
+    pct === 5 ? 'text-emerald-400' :
+    pct > 1 ? 'text-amber-400' :
+    'text-slate-400';
 
   return (
     <button
@@ -27,7 +29,10 @@ export function CategoryCard({ summary, onClick }: Props) {
           </span>
         </div>
       </div>
-      <p className="mt-1 text-slate-500 text-xs truncate">{summary.bank_name}</p>
+      <p className="mt-1 text-slate-500 text-xs truncate flex items-center gap-1.5">
+        <BankIcon bankName={summary.bank_name} size="sm" />
+        {summary.bank_name}
+      </p>
     </button>
   );
 }

@@ -15,20 +15,25 @@ categories.get('/', async (c) => {
 
 categories.post('/', async (c) => {
   const body = await c.req.json<{ name: string }>();
-  if (!body.name?.trim()) {
+  const name = body.name?.trim();
+  if (!name) {
     return c.json({ error: 'Category name is required' }, 400);
   }
+  const all = await c.env.DB.prepare('SELECT * FROM categories').all();
+  const existing = (all.results as { id: number; name: string }[]).find(
+    row => row.name.toLowerCase() === name.toLowerCase(),
+  );
+  if (existing) return c.json(existing, 200);
   try {
     const result = await c.env.DB.prepare(
       'INSERT INTO categories (name) VALUES (?) RETURNING *'
-    ).bind(body.name.trim()).first();
+    ).bind(name).first();
     return c.json(result, 201);
   } catch {
-    // Возвращаем существующую категорию при конфликте
-    const existing = await c.env.DB.prepare(
+    const again = await c.env.DB.prepare(
       'SELECT * FROM categories WHERE name = ?'
-    ).bind(body.name.trim()).first();
-    return c.json(existing, 200);
+    ).bind(name).first();
+    return c.json(again ?? { error: 'Conflict' }, again ? 200 : 409);
   }
 });
 

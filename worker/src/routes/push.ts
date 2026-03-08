@@ -6,6 +6,19 @@ interface Env {
   VAPID_PUBLIC_KEY: string;
 }
 
+function lastDayOfMonth(date: Date): number {
+  return new Date(date.getUTCFullYear(), date.getUTCMonth() + 1, 0).getUTCDate();
+}
+
+function resolveSchedule(): { day: number; banks: string[] }[] {
+  const now = new Date();
+  const lastDay = lastDayOfMonth(now);
+  return NOTIFICATION_SCHEDULE.map(({ day, banks }) => ({
+    day: day === -1 ? lastDay : day,
+    banks,
+  }));
+}
+
 const push = new Hono<{ Bindings: Env }>();
 
 push.get('/vapid-public-key', (c) => {
@@ -42,17 +55,19 @@ push.delete('/subscribe', async (c) => {
   return c.json({ success: true });
 });
 
-// Возвращает сегодняшнее расписание (для fallback-баннера на фронте)
 push.get('/schedule/today', (c) => {
-  const today = new Date().getUTCDate();
-  const todayRules = NOTIFICATION_SCHEDULE.filter(r => r.day === today);
+  const now = new Date();
+  const today = now.getUTCDate();
+  const lastDay = lastDayOfMonth(now);
+  const todayRules = NOTIFICATION_SCHEDULE.filter(r =>
+    r.day === today || (r.day === -1 && today === lastDay),
+  );
   const banks = todayRules.flatMap(r => r.banks);
   return c.json({ banks });
 });
 
-// Полное расписание для страницы настроек
 push.get('/schedule', (c) => {
-  return c.json(NOTIFICATION_SCHEDULE);
+  return c.json(resolveSchedule());
 });
 
 export default push;

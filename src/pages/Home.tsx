@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ESSENTIAL_CATEGORIES } from '../lib/constants';
+import { isEssentialCategory, essentialSortIndex } from '../lib/constants';
 import type { CategorySummary } from '../lib/api';
 import { useStore } from '../store';
 import { MonthSelector } from '../components/MonthSelector';
@@ -29,16 +29,17 @@ export function Home() {
     apiPush.scheduleToday().then(({ banks }) => setTodayBanks(banks)).catch(() => {});
   }, []);
 
-  const essential = categorySummaries.filter(s =>
-    ESSENTIAL_CATEGORIES.some(
-      name => name.toLowerCase() === s.category_name.toLowerCase(),
-    ),
-  );
-  const other = categorySummaries.filter(
-    s => !ESSENTIAL_CATEGORIES.some(
-      name => name.toLowerCase() === s.category_name.toLowerCase(),
-    ),
-  );
+  const synonymsMap = useStore(s => s.getSynonymsMap());
+  const essential = categorySummaries
+    .filter(s => isEssentialCategory(s.category_name, synonymsMap))
+    .sort((a, b) => essentialSortIndex(a.category_name, synonymsMap) - essentialSortIndex(b.category_name, synonymsMap));
+  const other = categorySummaries
+    .filter(s => !isEssentialCategory(s.category_name, synonymsMap))
+    .sort((a, b) => {
+      const ia = essentialSortIndex(a.category_name, synonymsMap);
+      const ib = essentialSortIndex(b.category_name, synonymsMap);
+      return ia !== ib ? ia - ib : a.category_name.localeCompare(b.category_name);
+    });
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">

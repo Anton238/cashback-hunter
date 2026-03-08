@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
+import { BankIcon } from '../components/BankIcon';
 
 function formatDate(iso: string | null): string {
   if (!iso) return '—';
@@ -41,9 +42,12 @@ export function Banks() {
             {banks.map(bank => (
               <li
                 key={bank.id}
-                className="flex items-center justify-between py-3 px-4 bg-slate-800 rounded-xl"
+                className="flex items-center justify-between gap-3 py-3 px-4 bg-slate-800 rounded-xl"
               >
-                <span className="font-medium text-slate-200">{bank.name}</span>
+                <div className="flex items-center gap-3 min-w-0">
+                  <BankIcon bankName={bank.name} size="md" />
+                  <span className="font-medium text-slate-200 truncate">{bank.name}</span>
+                </div>
                 <div className="flex items-center gap-3">
                   <span className="text-slate-500 text-sm tabular-nums">
                     {formatDate(bank.updated_at)}

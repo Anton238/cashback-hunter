@@ -15,7 +15,7 @@ PWA for aggregating bank cashback rates. Upload screenshots, enter categories an
 - Create a D1 database: Workers & Pages → D1 → Create database → name `cashback-hunter`. Copy the database ID.
 - Run migrations:
   ```bash
-  cd worker && npx wrangler d1 execute cashback-hunter --file=src/db/schema.sql --remote
+  cd worker && npx wrangler d1 execute cashback-hunter --file=src/db/schema.sql --remote && npx wrangler d1 execute cashback-hunter --file=src/db/seed.sql --remote
   ```
 - In `worker/wrangler.toml` set `database_id` under `[[d1_databases]]` to your D1 database ID.
 

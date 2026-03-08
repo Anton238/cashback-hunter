@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { apiCashback } from '../lib/api';
 import type { CategorySummary } from '../lib/api';
 import { useStore } from '../store';
+import { BankIcon } from './BankIcon';
 
 interface Props {
   summary: CategorySummary | null;
@@ -113,9 +114,12 @@ export function CategoryModal({
                     key={row.id}
                     className="flex items-center justify-between gap-2 py-2 px-3 bg-slate-800 rounded-xl"
                   >
-                    <span className="text-slate-200 font-medium truncate">
-                      {row.bank_name}
-                    </span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <BankIcon bankName={row.bank_name} size="sm" />
+                      <span className="text-slate-200 font-medium truncate">
+                        {row.bank_name}
+                      </span>
+                    </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {editingId === row.id ? (
                         <>

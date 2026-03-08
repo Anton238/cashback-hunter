@@ -7,7 +7,48 @@ export const ESSENTIAL_CATEGORIES = [
   'Аптеки',
   'АЗС',
   'Одежда',
-];
+] as const;
+
+export function isEssentialCategory(
+  categoryName: string,
+  synonymsMap: Record<string, string[]>,
+): boolean {
+  const lower = categoryName.trim().toLowerCase();
+  if (!lower) return false;
+  for (const name of ESSENTIAL_CATEGORIES) {
+    if (name.toLowerCase() === lower) return true;
+    const keywords = CATEGORY_KEYWORD_MAP[name];
+    if (keywords?.some(kw => lower.includes(kw) || kw.includes(lower))) return true;
+  }
+  const reversed = Object.entries(synonymsMap).find(([, syns]) =>
+    syns.some(s => s.trim().toLowerCase() === lower),
+  );
+  if (reversed) {
+    const canonical = reversed[0];
+    return ESSENTIAL_CATEGORIES.some(n => n.toLowerCase() === canonical.toLowerCase());
+  }
+  return false;
+}
+
+export function essentialSortIndex(categoryName: string, synonymsMap: Record<string, string[]>): number {
+  const lower = categoryName.trim().toLowerCase();
+  if (!lower) return ESSENTIAL_CATEGORIES.length;
+  for (let i = 0; i < ESSENTIAL_CATEGORIES.length; i++) {
+    const name = ESSENTIAL_CATEGORIES[i];
+    if (name.toLowerCase() === lower) return i;
+    const keywords = CATEGORY_KEYWORD_MAP[name];
+    if (keywords?.some(kw => lower.includes(kw) || kw.includes(lower))) return i;
+  }
+  const reversed = Object.entries(synonymsMap).find(([, syns]) =>
+    syns.some(s => s.trim().toLowerCase() === lower),
+  );
+  if (reversed) {
+    const canonical = reversed[0];
+    const idx = ESSENTIAL_CATEGORIES.findIndex(n => n.toLowerCase() === canonical.toLowerCase());
+    if (idx >= 0) return idx;
+  }
+  return ESSENTIAL_CATEGORIES.length;
+}
 
 export const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
 
@@ -22,3 +63,26 @@ export const CATEGORY_KEYWORD_MAP: Record<string, string[]> = {
   'Кино': ['кино', 'театр', 'кинотеатр', 'cinema', 'movie'],
   'Одежда': ['одежд', 'обувь', 'одежды', 'fashion', 'cloth'],
 };
+
+export const DEFAULT_BANKS: { name: string; iconUrl: string }[] = [
+  { name: 'Tbank', iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/17/T-Bank_RU_logo.svg' },
+  { name: 'Яндекс', iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4f/Yandex_icon.svg' },
+  { name: 'Сбербанк', iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/9b/Sberbank_Logo_2020.svg' },
+  { name: 'Озон', iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/39/Ozon_logo_clear.svg' },
+  { name: 'Альфа', iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Alfa_Bank_RU_logo.svg' },
+  { name: 'ВТБ', iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/7c/VTB_Logo_2018.svg' },
+  { name: 'Зенит', iconUrl: 'https://cdn.worldvectorlogo.com/logos/zenit-bank.svg' },
+  { name: 'Газпром', iconUrl: 'https://upload.wikimedia.org/wikipedia/en/9/99/Gazprombank_en.svg' },
+  { name: 'МТС', iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/MTSBank_Logo_800px.png/120px-MTSBank_Logo_800px.png' },
+  { name: 'Уралсиб', iconUrl: 'https://cdn.worldvectorlogo.com/logos/uralsib.svg' },
+];
+
+const BANK_ICON_MAP: Record<string, string> = Object.fromEntries(
+  DEFAULT_BANKS.map(b => [b.name.toLowerCase().trim(), b.iconUrl]),
+);
+
+export function getBankIconUrl(bankName: string): string | undefined {
+  if (!bankName?.trim()) return undefined;
+  const key = bankName.trim().toLowerCase();
+  return BANK_ICON_MAP[key] ?? DEFAULT_BANKS.find(b => key.includes(b.name.toLowerCase()) || b.name.toLowerCase().includes(key))?.iconUrl;
+}

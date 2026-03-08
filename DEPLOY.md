@@ -84,10 +84,11 @@ database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
 cd worker
 npm install
 npx wrangler d1 execute cashback-hunter --file=src/db/schema.sql --remote
+npx wrangler d1 execute cashback-hunter --file=src/db/seed.sql --remote
 cd ..
 ```
 
-Должно быть сообщение об успешном выполнении. Если попросит логин в Cloudflare — выполни `npx wrangler login` и повтори команду.
+Должно быть сообщение об успешном выполнении. Команда seed добавляет банки по умолчанию (Tbank, Сбербанк и др.). Если попросит логин в Cloudflare — выполни `npx wrangler login` и повтори команду.
 
 ---
 

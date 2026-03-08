@@ -5,12 +5,16 @@ interface NotificationRule {
   banks: string[];
 }
 
+const DEFAULT_BANK_NAMES = [
+  'Tbank', 'Яндекс', 'Сбербанк', 'Озон', 'Альфа', 'ВТБ', 'Зенит', 'Газпром', 'МТС', 'Уралсиб',
+];
+
+function lastDayOfMonth(date: Date): number {
+  return new Date(date.getUTCFullYear(), date.getUTCMonth() + 1, 0).getUTCDate();
+}
+
 const NOTIFICATION_SCHEDULE: NotificationRule[] = [
-  { day: 1,  banks: ['Альфа-Банк', 'ВТБ'] },
-  { day: 3,  banks: ['Газпромбанк'] },
-  { day: 25, banks: ['Тинькофф', 'СберБанк'] },
-  { day: 26, banks: ['Россельхозбанк'] },
-  { day: 28, banks: ['Райффайзен', 'МТС-Банк'] },
+  { day: -1, banks: DEFAULT_BANK_NAMES },
 ];
 
 interface Env {
@@ -30,8 +34,11 @@ interface StoredSubscription {
 export async function handleCron(env: Env): Promise<void> {
   const now = new Date();
   const today = now.getUTCDate();
+  const lastDay = lastDayOfMonth(now);
 
-  const todayRules = NOTIFICATION_SCHEDULE.filter(r => r.day === today);
+  const todayRules = NOTIFICATION_SCHEDULE.filter(r =>
+    r.day === today || (r.day === -1 && today === lastDay),
+  );
   if (todayRules.length === 0) return;
 
   const banksToNotify = todayRules.flatMap(r => r.banks);
