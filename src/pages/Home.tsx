@@ -30,7 +30,8 @@ export function Home() {
     apiPush.scheduleToday().then(({ reminder }) => setTodayReminder(reminder)).catch(() => {});
   }, []);
 
-  const synonymsMap = useStore(s => s.getSynonymsMap());
+  const getSynonymsMap = useStore(s => s.getSynonymsMap);
+  const synonymsMap = getSynonymsMap();
   const essential = categorySummaries
     .filter(s => isEssentialCategory(s.category_name, synonymsMap))
     .sort((a, b) => essentialSortIndex(a.category_name, synonymsMap) - essentialSortIndex(b.category_name, synonymsMap));
