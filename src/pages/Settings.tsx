@@ -105,7 +105,7 @@ export function Settings() {
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-6 space-y-8">
+      <main className="max-w-lg mx-auto px-4 py-6 pb-nav space-y-8">
         <section>
           <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">
             API connection

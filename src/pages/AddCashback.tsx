@@ -99,7 +99,7 @@ export function AddCashback() {
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-lg mx-auto px-4 py-6 pb-nav space-y-6">
         <div>
           <label className="block text-sm font-medium text-slate-400 mb-2">
             Photo (optional, for OCR)

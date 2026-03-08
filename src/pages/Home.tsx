@@ -54,7 +54,7 @@ export function Home() {
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-6">
+      <main className="max-w-lg mx-auto px-4 py-6 pb-nav">
         {todayReminder && (
           <div className="mb-4 p-3 bg-amber-100 border border-amber-300 rounded-xl text-amber-800 text-sm">
             Today: Выбери кэшбэки

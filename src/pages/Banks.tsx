@@ -27,7 +27,7 @@ export function Banks() {
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-6">
+      <main className="max-w-lg mx-auto px-4 py-6 pb-nav">
         {banks.length === 0 ? (
           <div className="text-center py-12 text-slate-600">
             <p className="mb-4">No banks yet.</p>
@@ -67,7 +67,6 @@ export function Banks() {
       </main>
 
       <BottomNav />
-      <div className="h-24" />
     </div>
   );
 }

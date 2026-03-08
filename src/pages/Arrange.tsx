@@ -98,7 +98,7 @@ export function Arrange() {
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-lg mx-auto px-4 py-6 pb-nav space-y-6">
         {banks.length === 0 ? (
           <p className="text-slate-500">No banks. Add banks first.</p>
         ) : (
