@@ -85,16 +85,16 @@ export function CategoryModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md max-h-[85vh] bg-slate-900 rounded-t-2xl sm:rounded-2xl shadow-xl flex flex-col"
+        className="w-full max-w-md max-h-[85vh] bg-white rounded-t-2xl sm:rounded-2xl shadow-xl flex flex-col border border-slate-200"
         onClick={e => e.stopPropagation()}
       >
-        <div className="p-4 border-b border-slate-700 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-100">
+        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-slate-800">
             {summary.category_name}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-200 rounded-lg"
+            className="p-2 text-slate-500 hover:text-slate-700 rounded-lg"
             aria-label="Close"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,11 +112,11 @@ export function CategoryModal({
                 .map(row => (
                   <li
                     key={row.id}
-                    className="flex items-center justify-between gap-2 py-2 px-3 bg-slate-800 rounded-xl"
+                    className="flex items-center justify-between gap-2 py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <BankIcon bankName={row.bank_name} size="sm" />
-                      <span className="text-slate-200 font-medium truncate">
+                      <span className="text-slate-800 font-medium truncate">
                         {row.bank_name}
                       </span>
                     </div>
@@ -132,15 +132,15 @@ export function CategoryModal({
                               if (e.key === 'Enter') saveEdit();
                               if (e.key === 'Escape') cancelEdit();
                             }}
-                            className="w-14 px-2 py-1 bg-slate-700 border border-slate-600 rounded text-indigo-400 font-semibold text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-14 px-2 py-1 bg-white border border-slate-300 rounded text-violet-600 font-semibold text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-violet-400"
                             autoFocus
                           />
-                          <span className="text-slate-400">%</span>
+                          <span className="text-slate-500">%</span>
                           <button
                             type="button"
                             onClick={saveEdit}
                             disabled={saving}
-                            className="p-1 text-emerald-400 hover:text-emerald-300 rounded"
+                            className="p-1 text-emerald-500 hover:text-emerald-600 rounded"
                             aria-label="Save"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,7 +150,7 @@ export function CategoryModal({
                           <button
                             type="button"
                             onClick={cancelEdit}
-                            className="p-1 text-slate-500 hover:text-slate-300 rounded"
+                            className="p-1 text-slate-500 hover:text-slate-700 rounded"
                             aria-label="Cancel"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,7 +163,7 @@ export function CategoryModal({
                           <button
                             type="button"
                             onClick={() => startEdit(row)}
-                            className="text-indigo-400 font-semibold tabular-nums hover:text-indigo-300"
+                            className="text-violet-600 font-semibold tabular-nums hover:text-violet-500"
                           >
                             {row.percentage}%
                           </button>
@@ -184,10 +184,10 @@ export function CategoryModal({
             </ul>
           )}
         </div>
-        <div className="p-4 border-t border-slate-700">
+        <div className="p-4 border-t border-slate-200">
           <button
             onClick={onAddBank}
-            className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl transition-colors"
+            className="w-full py-2.5 px-4 bg-violet-500 hover:bg-violet-600 text-white font-medium rounded-xl transition-colors"
           >
             Add bank to category
           </button>

@@ -21,23 +21,23 @@ export function InstallPrompt() {
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-40 bg-slate-800 border border-slate-600 rounded-xl p-4 shadow-lg max-w-lg mx-auto">
-      <p className="text-slate-200 text-sm mb-2">
+    <div className="fixed bottom-24 left-4 right-4 z-40 bg-white border border-slate-200 rounded-xl p-4 shadow-lg max-w-lg mx-auto">
+      <p className="text-slate-700 text-sm mb-2">
         Add to home screen for quick access and push reminders:
       </p>
-      <p className="text-slate-400 text-xs mb-3">
+      <p className="text-slate-500 text-xs mb-3">
         Safari → Share → Add to Home Screen
       </p>
       <div className="flex gap-2">
         <button
           onClick={dismiss}
-          className="flex-1 py-2 text-slate-400 text-sm rounded-lg border border-slate-600 hover:bg-slate-700"
+          className="flex-1 py-2 text-slate-600 text-sm rounded-full border border-slate-300 hover:bg-slate-50"
         >
           Later
         </button>
         <button
           onClick={dismiss}
-          className="flex-1 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg"
+          className="flex-1 py-2 bg-violet-500 text-white text-sm font-medium rounded-full"
         >
           OK
         </button>

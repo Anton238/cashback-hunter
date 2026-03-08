@@ -90,10 +90,10 @@ export function Arrange() {
   }, [banks, bankFiles, bankLimits, getSynonymsMap, createCategory]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
-      <header className="sticky top-0 z-10 bg-slate-950/90 backdrop-blur border-b border-slate-800">
-        <div className="max-w-lg mx-auto px-4 py-4">
-          <h1 className="text-xl font-bold text-slate-100">Аранжировщик</h1>
+    <div className="min-h-screen bg-violet-50/50 text-slate-800">
+      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+        <div className="max-w-lg mx-auto px-4 py-3">
+          <h1 className="text-lg font-bold text-slate-800">Аранжировщик</h1>
           <p className="text-slate-500 text-sm mt-1">Загрузите фото категорий по банкам и укажите лимиты</p>
         </div>
       </header>
@@ -105,28 +105,28 @@ export function Arrange() {
           <>
             <ul className="space-y-4">
               {banks.map((bank) => (
-                <li key={bank.id} className="p-4 bg-slate-800 rounded-xl space-y-3">
+                <li key={bank.id} className="p-4 bg-white border border-slate-200 rounded-xl space-y-3 shadow-sm">
                   <div className="flex items-center gap-3">
                     <BankIcon bankName={bank.name} size="md" />
-                    <span className="font-medium text-slate-200">{bank.name}</span>
+                    <span className="font-medium text-slate-800">{bank.name}</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-3">
                     <label className="flex items-center gap-2">
-                      <span className="text-slate-400 text-sm">Лимит категорий</span>
+                      <span className="text-slate-500 text-sm">Лимит категорий</span>
                       <input
                         type="number"
                         min={0}
                         value={bankLimits[bank.id] ?? 0}
                         onChange={(e) => setLimit(bank.id, parseInt(e.target.value, 10) || 0)}
-                        className="w-20 py-1.5 px-2 rounded bg-slate-700 text-slate-200 border border-slate-600"
+                        className="w-20 py-1.5 px-2 rounded bg-white text-slate-800 border border-slate-300"
                       />
                     </label>
                     <label className="flex items-center gap-2 text-sm">
-                      <span className="text-slate-400">Фото</span>
+                      <span className="text-slate-500">Фото</span>
                       <input
                         type="file"
                         accept="image/*"
-                        className="text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-slate-600 file:text-slate-200"
+                        className="text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border file:bg-violet-100 file:text-violet-700 file:border-violet-200"
                         onChange={(e) => setFile(bank.id, e.target.files?.[0] ?? null)}
                       />
                       {bankFiles[bank.id] && (
@@ -142,28 +142,28 @@ export function Arrange() {
               type="button"
               onClick={run}
               disabled={running}
-              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium rounded-xl"
+              className="w-full py-3 px-4 bg-violet-500 hover:bg-violet-600 disabled:opacity-50 text-white font-medium rounded-xl"
             >
               {running ? 'Распределяю…' : 'Распределить'}
             </button>
 
-            {error && <p className="text-red-400 text-sm">{error}</p>}
+            {error && <p className="text-red-600 text-sm">{error}</p>}
 
             {result !== null && (
               <section>
-                <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">Результат</h2>
+                <h2 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">Результат</h2>
                 <ul className="space-y-3">
                   {banks.map((bank) => {
                     const list = result.get(bank.id);
                     if (!list || list.length === 0) return null;
                     return (
-                      <li key={bank.id} className="p-4 bg-slate-800 rounded-xl">
+                      <li key={bank.id} className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
                         <div className="flex items-center gap-2 mb-2">
                           <BankIcon bankName={bank.name} size="sm" />
-                          <span className="font-medium text-slate-200">{bank.name}</span>
+                          <span className="font-medium text-slate-800">{bank.name}</span>
                         </div>
-                        <p className="text-slate-400 text-sm mb-1">Выбери:</p>
-                        <p className="text-slate-200">{list.join(', ')}</p>
+                        <p className="text-slate-500 text-sm mb-1">Выбери:</p>
+                        <p className="text-slate-700">{list.join(', ')}</p>
                       </li>
                     );
                   })}
@@ -175,7 +175,7 @@ export function Arrange() {
       </main>
 
       <BottomNav />
-      <div className="h-16" />
+      <div className="h-24" />
     </div>
   );
 }

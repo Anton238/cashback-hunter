@@ -7,7 +7,7 @@
     "postinstall": "cp node_modules/tesseract.js/dist/worker.min.js public/tesseract-worker.min.js 2>/dev/null || true",
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "generate-pwa-icons": "pwa-asset-generator public/pwa-icon-source.png public/icons --icon-only --type png --background \"#0f172a\" && cp public/icons/manifest-icon-192.maskable.png public/icons/icon-192.png && cp public/icons/manifest-icon-512.maskable.png public/icons/icon-512.png",
+    "generate-pwa-icons": "node scripts/prepare-icons.mjs",
     "build:worker": "cd worker && npm run deploy",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -33,6 +33,7 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "pwa-asset-generator": "^8.1.2",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.2.1",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0",

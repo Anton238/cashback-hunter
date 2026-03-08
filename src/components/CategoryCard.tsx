@@ -17,10 +17,10 @@ export function CategoryCard({ summary, onClick }: Props) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left bg-slate-800 hover:bg-slate-750 active:bg-slate-700 rounded-2xl p-4 transition-colors"
+      className="w-full text-left bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 rounded-2xl p-4 transition-colors shadow-sm"
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-slate-200 font-medium text-sm leading-tight truncate">
+        <span className="text-slate-800 font-medium text-sm leading-tight truncate">
           {summary.category_name}
         </span>
         <div className="flex items-center gap-1.5 shrink-0">

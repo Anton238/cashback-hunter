@@ -89,11 +89,11 @@ export function AddCashback() {
   const { month, year } = monthOption;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
-      <header className="sticky top-0 z-10 bg-slate-950/90 backdrop-blur border-b border-slate-800">
-        <div className="max-w-lg mx-auto px-4 py-4">
-          <h1 className="text-xl font-bold text-slate-100">Add cashback</h1>
-          <div className="mt-3">
+    <div className="min-h-screen bg-violet-50/50 text-slate-800">
+      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+        <div className="max-w-lg mx-auto px-4 py-2">
+          <h1 className="text-lg font-bold text-slate-800">Add cashback</h1>
+          <div className="mt-2">
             <MonthSelector value={monthOption} onChange={setMonthOption} />
           </div>
         </div>
@@ -113,7 +113,7 @@ export function AddCashback() {
               if (f) handleFile(f);
               e.target.value = '';
             }}
-            className="block w-full text-slate-400 file:mr-2 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-slate-700 file:text-slate-200"
+            className="block w-full text-slate-600 file:mr-2 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-violet-100 file:text-violet-700 file:border file:border-violet-200"
           />
           {ocrLoading && <p className="mt-1 text-slate-500 text-sm">Recognizing text...</p>}
           {uploadError && <p className="mt-1 text-red-400 text-sm">{uploadError}</p>}
@@ -124,7 +124,7 @@ export function AddCashback() {
           <select
             value={selectedBankId ?? ''}
             onChange={e => setSelectedBankId(e.target.value ? parseInt(e.target.value, 10) : null)}
-            className="w-full px-3 py-2.5 bg-slate-800 border border-slate-600 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400"
           >
             <option value="">Select bank</option>
             {banks.map(b => (
@@ -139,7 +139,7 @@ export function AddCashback() {
               const bank = await createBank(name.trim());
               setSelectedBankId(bank.id);
             }}
-            className="mt-2 text-sm text-indigo-400 hover:text-indigo-300"
+            className="mt-2 text-sm text-violet-600 hover:text-violet-500"
           >
             + Add new bank
           </button>
@@ -161,7 +161,7 @@ export function AddCashback() {
       </main>
 
       <BottomNav />
-      <div className="h-16" />
+      <div className="h-24" />
     </div>
   );
 }

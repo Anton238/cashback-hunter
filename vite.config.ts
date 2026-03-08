@@ -13,7 +13,7 @@ export default defineConfig({
       filename: 'sw.ts',
       injectManifest: { swDest: 'dist/sw.js' },
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icons/*.png'],
+      includeAssets: ['favicon.ico', 'icons/*.png'],
       manifest: {
         name: 'Cashback Hunter',
         short_name: 'Кэшбэки',

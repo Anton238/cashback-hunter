@@ -19,7 +19,7 @@ export function BankIcon({ bankName, className = '', size = 'md' }: Props) {
   if (!url) {
     return (
       <span
-        className={`${sizeClasses[size]} shrink-0 rounded bg-slate-700 flex items-center justify-center text-slate-400 text-xs font-medium ${className}`}
+        className={`${sizeClasses[size]} shrink-0 rounded bg-violet-100 flex items-center justify-center text-violet-600 text-xs font-medium ${className}`}
         aria-hidden
       >
         {bankName.trim().slice(0, 1).toUpperCase() || '?'}
@@ -29,7 +29,7 @@ export function BankIcon({ bankName, className = '', size = 'md' }: Props) {
   if (failed) {
     return (
       <span
-        className={`${sizeClasses[size]} shrink-0 rounded bg-slate-700 flex items-center justify-center text-slate-400 text-xs font-medium ${className}`}
+        className={`${sizeClasses[size]} shrink-0 rounded bg-violet-100 flex items-center justify-center text-violet-600 text-xs font-medium ${className}`}
         aria-hidden
       >
         {bankName.trim().slice(0, 1).toUpperCase() || '?'}

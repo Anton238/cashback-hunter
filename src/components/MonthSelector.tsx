@@ -10,17 +10,17 @@ export function MonthSelector({ value, onChange, className = '' }: Props) {
   const options = getThreeMonths();
 
   return (
-    <div className={`flex gap-1 bg-slate-800 p-1 rounded-xl ${className}`}>
+    <div className={`flex gap-0.5 bg-slate-200/90 p-0.5 rounded-lg ${className}`}>
       {options.map((opt) => {
         const isActive = opt.month === value.month && opt.year === value.year;
         return (
           <button
             key={`${opt.year}-${opt.month}`}
             onClick={() => onChange(opt)}
-            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+            className={`flex-1 py-1 px-2 rounded-md text-xs font-medium transition-all ${
               isActive
-                ? 'bg-indigo-600 text-white shadow'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-violet-500 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-800'
             }`}
           >
             {opt.label}

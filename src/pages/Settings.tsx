@@ -98,10 +98,10 @@ export function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
-      <header className="sticky top-0 z-10 bg-slate-950/90 backdrop-blur border-b border-slate-800">
-        <div className="max-w-lg mx-auto px-4 py-4">
-          <h1 className="text-xl font-bold text-slate-100">Settings</h1>
+    <div className="min-h-screen bg-violet-50/50 text-slate-800">
+      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+        <div className="max-w-lg mx-auto px-4 py-3">
+          <h1 className="text-lg font-bold text-slate-800">Settings</h1>
         </div>
       </header>
 
@@ -118,33 +118,33 @@ export function Settings() {
             type="button"
             onClick={checkApi}
             disabled={apiStatus === 'checking'}
-            className="py-2.5 px-4 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-medium rounded-xl"
+            className="py-2.5 px-4 bg-slate-200 hover:bg-slate-300 disabled:opacity-50 text-slate-800 font-medium rounded-xl"
           >
             {apiStatus === 'checking' ? 'Checking...' : 'Check API'}
           </button>
           {apiStatus === 'ok' && (
-            <p className="mt-2 text-emerald-400 text-sm">API is reachable.</p>
+            <p className="mt-2 text-emerald-600 text-sm">API is reachable.</p>
           )}
           {apiStatus === 'error' && apiError && (
-            <p className="mt-2 text-red-400 text-sm">Error: {apiError}</p>
+            <p className="mt-2 text-red-600 text-sm">Error: {apiError}</p>
           )}
           <p className="text-slate-500 text-sm mt-4 mb-2">Data endpoints (used by Home):</p>
           <button
             type="button"
             onClick={checkDataEndpoints}
-            className="py-2.5 px-4 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-xl"
+            className="py-2.5 px-4 bg-slate-200 hover:bg-slate-300 text-slate-800 font-medium rounded-xl"
           >
             Check banks / categories / cashback
           </button>
           {dataCheck && (
             <ul className="mt-2 text-sm space-y-1">
-              <li className={dataCheck.banks === 'OK' ? 'text-emerald-400' : 'text-red-400'}>
+              <li className={dataCheck.banks === 'OK' ? 'text-emerald-600' : 'text-red-600'}>
                 banks: {dataCheck.banks}
               </li>
-              <li className={dataCheck.categories === 'OK' ? 'text-emerald-400' : 'text-red-400'}>
+              <li className={dataCheck.categories === 'OK' ? 'text-emerald-600' : 'text-red-600'}>
                 categories: {dataCheck.categories}
               </li>
-              <li className={dataCheck.cashback === 'OK' ? 'text-emerald-400' : 'text-red-400'}>
+              <li className={dataCheck.cashback === 'OK' ? 'text-emerald-600' : 'text-red-600'}>
                 cashback: {dataCheck.cashback}
               </li>
             </ul>
@@ -168,7 +168,7 @@ export function Settings() {
             <button
               onClick={subscribe}
               disabled={state === 'loading'}
-              className="py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium rounded-xl"
+              className="py-2.5 px-4 bg-violet-500 hover:bg-violet-600 disabled:opacity-50 text-white font-medium rounded-xl"
             >
               {state === 'loading' ? 'Loading...' : 'Enable reminders'}
             </button>
@@ -176,10 +176,10 @@ export function Settings() {
           {state === 'subscribed' && (
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <span className="text-emerald-400 text-sm">Reminders enabled</span>
+                <span className="text-emerald-600 text-sm">Reminders enabled</span>
                 <button
                   onClick={unsubscribe}
-                  className="py-1.5 px-3 text-slate-400 hover:text-slate-200 text-sm rounded-lg border border-slate-600"
+                  className="py-1.5 px-3 text-slate-600 hover:text-slate-800 text-sm rounded-lg border border-slate-300"
                 >
                   Disable
                 </button>
@@ -188,15 +188,15 @@ export function Settings() {
                 type="button"
                 onClick={sendTestNotification}
                 disabled={testNotify === 'sending'}
-                className="py-2.5 px-4 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-medium rounded-xl"
+                className="py-2.5 px-4 bg-slate-200 hover:bg-slate-300 disabled:opacity-50 text-slate-800 font-medium rounded-xl"
               >
                 {testNotify === 'sending' ? 'Sending...' : 'Test notification'}
               </button>
               {testNotify === 'ok' && (
-                <p className="text-emerald-400 text-sm">Test notification sent. Check your device.</p>
+                <p className="text-emerald-600 text-sm">Test notification sent. Check your device.</p>
               )}
               {testNotify === 'error' && testNotifyError && (
-                <p className="text-red-400 text-sm">Error: {testNotifyError}</p>
+                <p className="text-red-600 text-sm">Error: {testNotifyError}</p>
               )}
             </div>
           )}
@@ -215,7 +215,7 @@ export function Settings() {
               <select
                 value={synonymMainId === '' ? '' : String(synonymMainId)}
                 onChange={e => setSynonymMainId(e.target.value ? parseInt(e.target.value, 10) : '')}
-                className="w-full px-3 py-2.5 bg-slate-800 border border-slate-600 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400"
               >
                 <option value="">Select category</option>
                 {categories.map(c => (
@@ -232,7 +232,7 @@ export function Settings() {
                   onChange={e => setSynonymInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSynonym())}
                   placeholder="e.g. Супермаркеты"
-                  className="w-full px-3 py-2.5 bg-slate-800 border border-slate-600 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400"
                 />
               </div>
               <div className="flex items-end">
@@ -240,13 +240,13 @@ export function Settings() {
                   type="button"
                   onClick={addSynonym}
                   disabled={synonymMainId === '' || !synonymInput.trim()}
-                  className="py-2.5 px-4 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-medium rounded-lg"
+                  className="py-2.5 px-4 bg-slate-200 hover:bg-slate-300 disabled:opacity-50 text-slate-800 font-medium rounded-lg"
                 >
                   Add
                 </button>
               </div>
             </div>
-            {synonymError && <p className="text-sm text-red-400">{synonymError}</p>}
+            {synonymError && <p className="text-sm text-red-600">{synonymError}</p>}
             {categorySynonyms.length > 0 && (
               <ul className="space-y-2 mt-3">
                 {Object.entries(
@@ -256,12 +256,12 @@ export function Settings() {
                     return acc;
                   }, {})
                 ).map(([main, syns]) => (
-                  <li key={main} className="py-2 px-3 bg-slate-800 rounded-lg">
-                    <span className="text-slate-400 text-sm">{main}</span>
+                  <li key={main} className="py-2 px-3 bg-white border border-slate-200 rounded-lg">
+                    <span className="text-slate-500 text-sm">{main}</span>
                     <ul className="mt-1.5 space-y-1">
                       {syns.map(s => (
                         <li key={s.id} className="flex items-center justify-between text-sm">
-                          <span className="text-slate-200">{s.synonym}</span>
+                          <span className="text-slate-800">{s.synonym}</span>
                           <button
                             type="button"
                             onClick={() => removeSynonym(s.id)}
@@ -289,9 +289,9 @@ export function Settings() {
           <p className="text-slate-500 text-sm mb-3">One reminder on the last day of each month: «Выбери кэшбэки».</p>
           <ul className="space-y-2">
             {schedule.map(({ day }) => (
-              <li key={day} className="py-2 px-3 bg-slate-800 rounded-lg text-sm">
-                <span className="text-slate-400">Day {day}</span>
-                <span className="text-slate-200"> (last day of month)</span>
+              <li key={day} className="py-2 px-3 bg-white border border-slate-200 rounded-lg text-sm">
+                <span className="text-slate-500">Day {day}</span>
+                <span className="text-slate-700"> (last day of month)</span>
               </li>
             ))}
           </ul>
@@ -299,7 +299,7 @@ export function Settings() {
       </main>
 
       <BottomNav />
-      <div className="h-16" />
+      <div className="h-24" />
     </div>
   );
 }

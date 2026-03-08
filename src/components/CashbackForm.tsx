@@ -109,7 +109,7 @@ export function CashbackForm({
             onChange={e => setCategoryInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addRow())}
             placeholder="e.g. Products"
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400"
             list="categories-datalist"
           />
           <datalist id="categories-datalist">
@@ -127,13 +127,13 @@ export function CashbackForm({
             onChange={e => setPercentageInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addRow())}
             placeholder="5"
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400"
           />
         </div>
         <button
           type="button"
           onClick={addRow}
-          className="py-2 px-4 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg font-medium transition-colors"
+          className="py-2 px-4 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg font-medium transition-colors"
         >
           Add
         </button>
@@ -144,11 +144,11 @@ export function CashbackForm({
           {rows.map((row, i) => (
             <li
               key={`${row.category_id}-${i}`}
-              className="flex items-center justify-between py-2 px-3 bg-slate-800 rounded-lg"
+              className="flex items-center justify-between py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg"
             >
-              <span className="text-slate-200">{row.category_name}</span>
+              <span className="text-slate-800">{row.category_name}</span>
               <div className="flex items-center gap-2">
-                <span className="text-indigo-400 font-medium tabular-nums">{row.percentage}%</span>
+                <span className="text-violet-600 font-medium tabular-nums">{row.percentage}%</span>
                 <button
                   type="button"
                   onClick={() => removeRow(i)}
@@ -166,13 +166,13 @@ export function CashbackForm({
       )}
 
       {error && (
-        <p className="text-sm text-red-400">{error}</p>
+        <p className="text-sm text-red-600">{error}</p>
       )}
 
       <button
         type="submit"
         disabled={saving || rows.length === 0}
-        className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-colors"
+        className="w-full py-3 px-4 bg-violet-500 hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-colors"
       >
         {saving ? 'Saving...' : 'Save cashback'}
       </button>

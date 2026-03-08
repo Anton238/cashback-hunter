@@ -19,21 +19,21 @@ export function Banks() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
-      <header className="sticky top-0 z-10 bg-slate-950/90 backdrop-blur border-b border-slate-800">
-        <div className="max-w-lg mx-auto px-4 py-4">
-          <h1 className="text-xl font-bold text-slate-100">Banks</h1>
+    <div className="min-h-screen bg-violet-50/50 text-slate-800">
+      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+        <div className="max-w-lg mx-auto px-4 py-3">
+          <h1 className="text-lg font-bold text-slate-800">Banks</h1>
           <p className="text-slate-500 text-sm mt-1">Last update date per bank</p>
         </div>
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-6">
         {banks.length === 0 ? (
-          <div className="text-center py-12 text-slate-500">
+          <div className="text-center py-12 text-slate-600">
             <p className="mb-4">No banks yet.</p>
             <Link
               to="/add"
-              className="inline-block py-2.5 px-5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl"
+              className="inline-block py-2.5 px-5 bg-violet-500 hover:bg-violet-600 text-white font-medium rounded-xl"
             >
               Add cashback (create bank there)
             </Link>
@@ -43,11 +43,11 @@ export function Banks() {
             {banks.map(bank => (
               <li
                 key={bank.id}
-                className="flex items-center justify-between gap-3 py-3 px-4 bg-slate-800 rounded-xl"
+                className="flex items-center justify-between gap-3 py-3 px-4 bg-white border border-slate-200 rounded-xl shadow-sm"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <BankIcon bankName={bank.name} size="md" />
-                  <span className="font-medium text-slate-200 truncate">{bank.name}</span>
+                  <span className="font-medium text-slate-800 truncate">{bank.name}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-slate-500 text-sm tabular-nums">
@@ -55,7 +55,7 @@ export function Banks() {
                   </span>
                   <Link
                     to={`/add?bankId=${bank.id}`}
-                    className="text-indigo-400 hover:text-indigo-300 text-sm font-medium"
+                    className="text-violet-600 hover:text-violet-500 text-sm font-medium"
                   >
                     Update
                   </Link>
@@ -67,7 +67,7 @@ export function Banks() {
       </main>
 
       <BottomNav />
-      <div className="h-16" />
+      <div className="h-24" />
     </div>
   );
 }
