@@ -1,5 +1,18 @@
 import { API_BASE } from './constants';
 
+// #region agent log
+const _debugLog = (payload: Record<string, unknown>) => {
+  fetch('http://127.0.0.1:7244/ingest/3e9386ca-8456-4709-acf2-45add08b0809', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...payload, timestamp: Date.now(), location: 'api.ts' }),
+  }).catch(() => {});
+};
+if (typeof API_BASE !== 'undefined') {
+  _debugLog({ message: 'API_BASE at load', data: { API_BASE }, hypothesisId: 'H1' });
+}
+// #endregion
+
 export interface Bank {
   id: number;
   name: string;
@@ -34,15 +47,40 @@ export interface CategorySummary {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const url = `${API_BASE}${path}`;
+  // #region agent log
+  _debugLog({ message: 'request start', data: { url, path }, hypothesisId: 'H2' });
+  // #endregion
+  const res = await fetch(url, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...init?.headers },
   });
+  // #region agent log
+  const contentType = res.headers.get('Content-Type') ?? '';
+  const looksLikeHtml = contentType.includes('text/html') || res.status === 200 && contentType.trim() === '';
+  _debugLog({
+    message: 'response',
+    data: { status: res.status, ok: res.ok, contentType, looksLikeHtml },
+    hypothesisId: looksLikeHtml ? 'H4' : 'H3',
+  });
+  // #endregion
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error((err as { error: string }).error ?? res.statusText);
   }
-  return res.json() as Promise<T>;
+  const text = await res.text();
+  try {
+    return JSON.parse(text) as T;
+  } catch (e) {
+    // #region agent log
+    _debugLog({
+      message: 'parse error',
+      data: { error: String(e), bodyPreview: text.slice(0, 120) },
+      hypothesisId: 'H5',
+    });
+    // #endregion
+    throw e;
+  }
 }
 
 // Banks

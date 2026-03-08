@@ -11,5 +11,9 @@ database_id = "9be3f10f-e4c1-44ad-bdb5-2406a51e664a"
 [triggers]
 crons = ["0 8 * * *"]
 
+[observability.logs]
+enabled = true
+invocation_logs = true
+
 [vars]
 FRONTEND_ORIGIN = "https://cashback-hunter.pages.dev"

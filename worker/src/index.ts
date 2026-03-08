@@ -20,6 +20,8 @@ const app = new Hono<{ Bindings: Env }>();
 app.use('*', logger());
 
 app.use('/api/*', async (c, next) => {
+  const url = new URL(c.req.url);
+  console.log('[Worker]', c.req.method, url.pathname, 'Origin:', c.req.header('Origin') ?? 'none');
   const origin = c.env?.FRONTEND_ORIGIN ?? 'http://localhost:5173';
   return cors({
     origin: [origin, 'http://localhost:5173', 'http://localhost:4173'],
