@@ -16,8 +16,16 @@ interface Env {
   DB: D1Database;
   VAPID_PUBLIC_KEY: string;
   VAPID_PRIVATE_KEY: string;
-  VAPID_SUBJECT: string;
+  VAPID_SUBJECT?: string;
   FRONTEND_ORIGIN: string;
+}
+
+function getVapid(env: Env) {
+  return {
+    subject: (env.VAPID_SUBJECT?.trim() || env.FRONTEND_ORIGIN),
+    publicKey: env.VAPID_PUBLIC_KEY,
+    privateKey: env.VAPID_PRIVATE_KEY,
+  };
 }
 
 interface StoredSubscription {
@@ -42,11 +50,7 @@ export async function handleCron(env: Env): Promise<void> {
 
   if (!result.results || result.results.length === 0) return;
 
-  const vapid = {
-    subject: env.VAPID_SUBJECT,
-    publicKey: env.VAPID_PUBLIC_KEY,
-    privateKey: env.VAPID_PRIVATE_KEY,
-  };
+  const vapid = getVapid(env);
 
   const message: PushMessage = {
     data: {
@@ -84,11 +88,7 @@ export async function handleCron(env: Env): Promise<void> {
 }
 
 export async function sendTestPush(env: Env, row: StoredSubscription): Promise<void> {
-  const vapid = {
-    subject: env.VAPID_SUBJECT,
-    publicKey: env.VAPID_PUBLIC_KEY,
-    privateKey: env.VAPID_PRIVATE_KEY,
-  };
+  const vapid = getVapid(env);
   const message: PushMessage = {
     data: {
       title: 'Выбери кэшбэки',
