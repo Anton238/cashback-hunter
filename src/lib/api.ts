@@ -1,17 +1,13 @@
 import { API_BASE } from './constants';
 
-// #region agent log
-const _debugLog = (payload: Record<string, unknown>) => {
-  fetch('http://127.0.0.1:7244/ingest/3e9386ca-8456-4709-acf2-45add08b0809', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...payload, timestamp: Date.now(), location: 'api.ts' }),
-  }).catch(() => {});
+const isDev = import.meta.env.DEV;
+const devLog = (msg: string, data?: Record<string, unknown>) => {
+  if (isDev) console.log('[api]', msg, data ?? '');
 };
-if (typeof API_BASE !== 'undefined') {
-  _debugLog({ message: 'API_BASE at load', data: { API_BASE }, hypothesisId: 'H1' });
+
+if (isDev && typeof API_BASE !== 'undefined') {
+  devLog('API_BASE', { API_BASE });
 }
-// #endregion
 
 export interface Bank {
   id: number;
@@ -48,22 +44,12 @@ export interface CategorySummary {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const url = `${API_BASE}${path}`;
-  // #region agent log
-  _debugLog({ message: 'request start', data: { url, path }, hypothesisId: 'H2' });
-  // #endregion
+  devLog('request', { path, url });
   const res = await fetch(url, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...init?.headers },
   });
-  // #region agent log
-  const contentType = res.headers.get('Content-Type') ?? '';
-  const looksLikeHtml = contentType.includes('text/html') || res.status === 200 && contentType.trim() === '';
-  _debugLog({
-    message: 'response',
-    data: { status: res.status, ok: res.ok, contentType, looksLikeHtml },
-    hypothesisId: looksLikeHtml ? 'H4' : 'H3',
-  });
-  // #endregion
+  devLog('response', { path, status: res.status, ok: res.ok });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error((err as { error: string }).error ?? res.statusText);
@@ -72,13 +58,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     return JSON.parse(text) as T;
   } catch (e) {
-    // #region agent log
-    _debugLog({
-      message: 'parse error',
-      data: { error: String(e), bodyPreview: text.slice(0, 120) },
-      hypothesisId: 'H5',
-    });
-    // #endregion
+    if (isDev) console.warn('[api] parse error', path, String(e), text.slice(0, 80));
     throw e;
   }
 }

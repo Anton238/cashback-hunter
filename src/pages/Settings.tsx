@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePush } from '../hooks/usePush';
-import { apiPush, apiHealth } from '../lib/api';
+import { apiPush, apiHealth, apiBanks, apiCategories, apiCashback } from '../lib/api';
 import { API_BASE } from '../lib/constants';
+import { useStore } from '../store';
 
 export function Settings() {
   const { state, subscribe, unsubscribe } = usePush();
   const [schedule, setSchedule] = useState<{ day: number; banks: string[] }[]>([]);
   const [apiStatus, setApiStatus] = useState<'idle' | 'checking' | 'ok' | 'error'>('idle');
   const [apiError, setApiError] = useState<string | null>(null);
+  const [dataCheck, setDataCheck] = useState<{ banks?: string; categories?: string; cashback?: string } | null>(null);
+  const selectedMonth = useStore(s => s.selectedMonth);
 
   useEffect(() => {
     apiPush.schedule().then(setSchedule).catch(() => {});
@@ -26,6 +29,16 @@ export function Settings() {
         setApiStatus('error');
         setApiError(err.message);
       });
+  };
+
+  const checkDataEndpoints = async () => {
+    setDataCheck(null);
+    const [banks, categories, cashback] = await Promise.all([
+      apiBanks.list().then(() => 'OK').catch((e: Error) => e.message),
+      apiCategories.list().then(() => 'OK').catch((e: Error) => e.message),
+      apiCashback.list(selectedMonth.month, selectedMonth.year).then(() => 'OK').catch((e: Error) => e.message),
+    ]);
+    setDataCheck({ banks, categories, cashback });
   };
 
   return (
@@ -58,6 +71,27 @@ export function Settings() {
           )}
           {apiStatus === 'error' && apiError && (
             <p className="mt-2 text-red-400 text-sm">Error: {apiError}</p>
+          )}
+          <p className="text-slate-500 text-sm mt-4 mb-2">Data endpoints (used by Home):</p>
+          <button
+            type="button"
+            onClick={checkDataEndpoints}
+            className="py-2.5 px-4 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-xl"
+          >
+            Check banks / categories / cashback
+          </button>
+          {dataCheck && (
+            <ul className="mt-2 text-sm space-y-1">
+              <li className={dataCheck.banks === 'OK' ? 'text-emerald-400' : 'text-red-400'}>
+                banks: {dataCheck.banks}
+              </li>
+              <li className={dataCheck.categories === 'OK' ? 'text-emerald-400' : 'text-red-400'}>
+                categories: {dataCheck.categories}
+              </li>
+              <li className={dataCheck.cashback === 'OK' ? 'text-emerald-400' : 'text-red-400'}>
+                cashback: {dataCheck.cashback}
+              </li>
+            </ul>
           )}
         </section>
 

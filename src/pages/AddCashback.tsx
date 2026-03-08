@@ -97,7 +97,6 @@ export function AddCashback() {
           <input
             type="file"
             accept="image/*"
-            capture="environment"
             disabled={ocrLoading}
             onChange={e => {
               const f = e.target.files?.[0];

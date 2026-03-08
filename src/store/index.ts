@@ -83,19 +83,27 @@ export const useStore = create<AppState>((set, get) => ({
   refreshAll: async () => {
     const { selectedMonth } = get();
     set({ loading: true, error: null });
-    try {
-      const [banks, categories, entries] = await Promise.all([
-        apiBanks.list(),
-        apiCategories.list(),
-        apiCashback.list(selectedMonth.month, selectedMonth.year),
-      ]);
+    const [banksResult, categoriesResult, cashbackResult] = await Promise.allSettled([
+      apiBanks.list(),
+      apiCategories.list(),
+      apiCashback.list(selectedMonth.month, selectedMonth.year),
+    ]);
+    const failed = [
+      banksResult.status === 'rejected' && { which: 'banks', err: (banksResult as PromiseRejectedResult).reason },
+      categoriesResult.status === 'rejected' && { which: 'categories', err: (categoriesResult as PromiseRejectedResult).reason },
+      cashbackResult.status === 'rejected' && { which: 'cashback', err: (cashbackResult as PromiseRejectedResult).reason },
+    ].filter(Boolean) as { which: string; err: unknown }[];
+    if (failed.length > 0) {
+      const msg = failed.map(f => `${f.which}: ${(f.err as Error).message}`).join('; ');
+      set({ error: msg });
+    } else {
+      const banks = (banksResult as PromiseFulfilledResult<Bank[]>).value;
+      const categories = (categoriesResult as PromiseFulfilledResult<Category[]>).value;
+      const entries = (cashbackResult as PromiseFulfilledResult<CashbackEntry[]>).value;
       const summaries = groupByCategory(entries);
       set({ banks, categories, cashbackEntries: entries, categorySummaries: summaries });
-    } catch (err) {
-      set({ error: (err as Error).message });
-    } finally {
-      set({ loading: false });
     }
+    set({ loading: false });
   },
 
   createBank: async (name) => {
