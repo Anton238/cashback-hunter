@@ -104,25 +104,43 @@ cd ..
 
 ## Часть 5. Worker (API) в Cloudflare
 
-### 5.1. Создать Worker и привязать D1
+В дашборде Cloudflare нельзя «создать пустой Worker» — только подключить Git или загрузить статику. Worker создаётся **первым деплоем**: конфиг (D1, cron) уже в `worker/wrangler.toml`. Деплой можно сделать из терминала или **из веб-интерфейса** (удобно, если локально падает «fetch failed»).
 
-1. **Workers & Pages** → **Create** → **Worker**.
-2. Имя, например `cashback-hunter-api` (или как в `wrangler.toml`: `name = "cashback-hunter-api"`).
-3. **Deploy** (можно сразу деплоить «пустой» Worker — потом перезапишется из GitHub).
-4. Зайди в созданный Worker → **Settings** → **Variables** (или **Bindings**).
-5. В разделе **D1 Database bindings** нажми **Add binding**:  
-   Variable name: `DB`, D1 database: выбери `cashback-hunter`.  
-   Сохрани.
+### 5.1a. Деплой из терминала
 
-Если предпочитаешь делать деплой из терминала (один раз), можно так:
+Убедись, что в **worker/wrangler.toml** подставлен реальный `database_id` (часть 3). Затем:
 
 ```bash
 cd worker
+npm install
 npx wrangler login
 npx wrangler deploy
 ```
 
-Тогда Worker создастся/обновится по конфигу из `wrangler.toml` (D1 уже привязан там по `database_id`). После первого деплоя из репо через GitHub Actions этот шаг можно не повторять.
+После успешного деплоя Worker `cashback-hunter-api` появится в **Workers & Pages**. Дальше — пункт 5.2 (секреты).
+
+**Если падает «fetch failed»** — сетевая проблема (VPN, файрвол). Используй деплой через веб (5.1b) или GitHub Actions (часть 7).
+
+### 5.1b. Деплой через веб-интерфейс (без терминала)
+
+Сборка и деплой выполняются на серверах Cloudflare, запросы идут не с твоего компьютера — это обходит ошибки «fetch failed» и блокировки сети.
+
+1. Убедись, что репозиторий уже запушен на GitHub (часть 1) и в **worker/wrangler.toml** подставлен реальный `database_id` (часть 3). Закоммить и запушь изменения.
+
+2. В Cloudflare: **Workers & Pages** → **Create** → **Create application** → выбери **Workers** (или **Import from Git** / **Connect to Git** — зависит от интерфейса).
+
+3. Выбери **Connect to Git** (или **Import existing repository**). Авторизуй **GitHub**, если ещё не подключён, и выбери репозиторий `cashback-hunter`.
+
+4. В настройках сборки (Build settings) укажи:
+   - **Production branch:** `main`
+   - **Root directory:** `worker` (обязательно — код Worker в подпапке)
+   - **Build command:** `npm install` (чтобы подтянуть зависимости перед деплоем)
+   - **Deploy command:** `npx wrangler deploy` (или оставь по умолчанию)
+   - **API token:** оставь **Create new token** (Cloudflare создаст токен сам)
+
+5. Сохрани и запусти деплой (или дождись первого пуша в `main`). Дождись окончания сборки. Worker появится в **Workers & Pages** с именем из `wrangler.toml` (`cashback-hunter-api`).
+
+6. Дальше — пункт 5.2: добавь секреты VAPID и переменную FRONTEND_ORIGIN в настройках этого Worker.
 
 ### 5.2. Секреты Worker (VAPID для push-уведомлений)
 
@@ -255,7 +273,7 @@ git push origin main
 | 2 | Cloudflare: регистрация, скопировать Account ID |
 | 3 | D1: создать базу `cashback-hunter`, подставить `database_id` в `worker/wrangler.toml`, выполнить схему (`npx wrangler d1 execute ... --remote`) |
 | 4 | Cloudflare: создать API Token (Workers edit), сохранить для GitHub |
-| 5 | Worker: задеплоить (вручную `wrangler deploy` или позже через GitHub), добавить секреты VAPID и переменную FRONTEND_ORIGIN |
+| 5 | Worker: задеплоить из терминала (`npx wrangler deploy` в папке `worker`) или через дашборд **Connect to Git** (Root directory: `worker`), затем в дашборде добавить секреты VAPID и переменную FRONTEND_ORIGIN |
 | 6 | Pages: Connect to Git, build command `npm run build`, output `dist` |
 | 7 | GitHub: секреты `CF_API_TOKEN` и `CF_ACCOUNT_ID` |
 | 8 | После первого деплоя: при необходимости задать `VITE_API_URL` в Pages и `FRONTEND_ORIGIN` в Worker |
