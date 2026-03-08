@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { resolveCategoryName } from '../lib/synonyms';
 import { useStore } from '../store';
 
 export interface CashbackRow {
@@ -31,6 +32,7 @@ export function CashbackForm({
   const banks = useStore(s => s.banks);
   const categories = useStore(s => s.categories);
   const createCategory = useStore(s => s.createCategory);
+  const getSynonymsMap = useStore(s => s.getSynonymsMap);
   const saveCashbackEntry = useStore(s => s.saveCashbackEntry);
 
   const bank = bankId ? banks.find(b => b.id === bankId) : null;
@@ -48,9 +50,10 @@ export function CashbackForm({
       return;
     }
     setError(null);
-    let cat = categories.find(c => c.name.toLowerCase() === name.toLowerCase());
+    const resolvedName = resolveCategoryName(name, getSynonymsMap());
+    let cat = categories.find(c => c.name.toLowerCase() === resolvedName.toLowerCase());
     if (!cat) {
-      cat = await createCategory(name);
+      cat = await createCategory(resolvedName);
     }
     setRows(prev => [...prev, { category_id: cat.id, category_name: cat.name, percentage: percentageInput }]);
     setCategoryInput('');

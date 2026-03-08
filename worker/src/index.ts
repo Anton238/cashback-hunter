@@ -5,6 +5,7 @@ import banks from './routes/banks';
 import categories from './routes/categories';
 import cashback from './routes/cashback';
 import push from './routes/push';
+import synonyms from './routes/synonyms';
 import { handleCron } from './cron/notifications';
 
 interface Env {
@@ -32,6 +33,7 @@ app.use('/api/*', async (c, next) => {
 
 app.route('/api/banks', banks);
 app.route('/api/categories', categories);
+app.route('/api/synonyms', synonyms);
 app.route('/api/cashback', cashback);
 app.route('/api/push', push);
 

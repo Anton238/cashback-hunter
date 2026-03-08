@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import type { Bank, Category, CashbackEntry, CategorySummary } from '../lib/api';
-import { apiBanks, apiCategories, apiCashback, groupByCategory } from '../lib/api';
+import type { Bank, Category, CashbackEntry, CategorySummary, CategorySynonym } from '../lib/api';
+import { apiBanks, apiCategories, apiCashback, apiSynonyms, groupByCategory } from '../lib/api';
+import { buildSynonymsMap } from '../lib/synonyms';
 import { getDefaultMonth, type MonthOption } from '../lib/months';
 
 interface AppState {
@@ -11,6 +12,7 @@ interface AppState {
   // Данные
   banks: Bank[];
   categories: Category[];
+  categorySynonyms: CategorySynonym[];
   cashbackEntries: CashbackEntry[];
   categorySummaries: CategorySummary[];
 
@@ -21,6 +23,8 @@ interface AppState {
   // Действия
   loadBanks: () => Promise<void>;
   loadCategories: () => Promise<void>;
+  loadCategorySynonyms: () => Promise<void>;
+  getSynonymsMap: () => ReturnType<typeof buildSynonymsMap>;
   loadCashback: (month: number, year: number) => Promise<void>;
   refreshAll: () => Promise<void>;
 
@@ -52,6 +56,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   banks: [],
   categories: [],
+  categorySynonyms: [],
   cashbackEntries: [],
   categorySummaries: [],
   loading: false,
@@ -66,6 +71,13 @@ export const useStore = create<AppState>((set, get) => ({
     const categories = await apiCategories.list();
     set({ categories });
   },
+
+  loadCategorySynonyms: async () => {
+    const categorySynonyms = await apiSynonyms.list();
+    set({ categorySynonyms });
+  },
+
+  getSynonymsMap: () => buildSynonymsMap(get().categorySynonyms),
 
   loadCashback: async (month, year) => {
     set({ loading: true, error: null });
@@ -83,14 +95,16 @@ export const useStore = create<AppState>((set, get) => ({
   refreshAll: async () => {
     const { selectedMonth } = get();
     set({ loading: true, error: null });
-    const [banksResult, categoriesResult, cashbackResult] = await Promise.allSettled([
+    const [banksResult, categoriesResult, synonymsResult, cashbackResult] = await Promise.allSettled([
       apiBanks.list(),
       apiCategories.list(),
+      apiSynonyms.list(),
       apiCashback.list(selectedMonth.month, selectedMonth.year),
     ]);
     const failed = [
       banksResult.status === 'rejected' && { which: 'banks', err: (banksResult as PromiseRejectedResult).reason },
       categoriesResult.status === 'rejected' && { which: 'categories', err: (categoriesResult as PromiseRejectedResult).reason },
+      synonymsResult.status === 'rejected' && { which: 'synonyms', err: (synonymsResult as PromiseRejectedResult).reason },
       cashbackResult.status === 'rejected' && { which: 'cashback', err: (cashbackResult as PromiseRejectedResult).reason },
     ].filter(Boolean) as { which: string; err: unknown }[];
     if (failed.length > 0) {
@@ -99,9 +113,10 @@ export const useStore = create<AppState>((set, get) => ({
     } else {
       const banks = (banksResult as PromiseFulfilledResult<Bank[]>).value;
       const categories = (categoriesResult as PromiseFulfilledResult<Category[]>).value;
+      const categorySynonyms = (synonymsResult as PromiseFulfilledResult<CategorySynonym[]>).value;
       const entries = (cashbackResult as PromiseFulfilledResult<CashbackEntry[]>).value;
       const summaries = groupByCategory(entries);
-      set({ banks, categories, cashbackEntries: entries, categorySummaries: summaries });
+      set({ banks, categories, categorySynonyms, cashbackEntries: entries, categorySummaries: summaries });
     }
     set({ loading: false });
   },

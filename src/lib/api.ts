@@ -79,6 +79,20 @@ export const apiCategories = {
   delete: (id: number) => request<{ success: boolean }>(`/categories/${id}`, { method: 'DELETE' }),
 };
 
+export interface CategorySynonym {
+  id: number;
+  category_id: number;
+  category_name: string;
+  synonym: string;
+}
+
+export const apiSynonyms = {
+  list: () => request<CategorySynonym[]>('/synonyms'),
+  add: (category_id: number, synonym: string) =>
+    request<CategorySynonym>('/synonyms', { method: 'POST', body: JSON.stringify({ category_id, synonym }) }),
+  delete: (id: number) => request<{ success: boolean }>(`/synonyms/${id}`, { method: 'DELETE' }),
+};
+
 // Cashback
 export const apiCashback = {
   list: (month: number, year: number) =>

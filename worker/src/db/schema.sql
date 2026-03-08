@@ -9,6 +9,13 @@ CREATE TABLE IF NOT EXISTS categories (
   name TEXT NOT NULL UNIQUE
 );
 
+CREATE TABLE IF NOT EXISTS category_synonyms (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  synonym     TEXT NOT NULL,
+  UNIQUE(category_id, synonym)
+);
+
 CREATE TABLE IF NOT EXISTS cashback_entries (
   id              INTEGER PRIMARY KEY AUTOINCREMENT,
   bank_id         INTEGER NOT NULL REFERENCES banks(id) ON DELETE CASCADE,

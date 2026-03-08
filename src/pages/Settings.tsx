@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePush } from '../hooks/usePush';
-import { apiPush, apiHealth, apiBanks, apiCategories, apiCashback } from '../lib/api';
+import { apiPush, apiHealth, apiBanks, apiCategories, apiCashback, apiSynonyms } from '../lib/api';
 import { API_BASE } from '../lib/constants';
 import { useStore } from '../store';
 
@@ -11,11 +11,47 @@ export function Settings() {
   const [apiStatus, setApiStatus] = useState<'idle' | 'checking' | 'ok' | 'error'>('idle');
   const [apiError, setApiError] = useState<string | null>(null);
   const [dataCheck, setDataCheck] = useState<{ banks?: string; categories?: string; cashback?: string } | null>(null);
+  const [synonymMainId, setSynonymMainId] = useState<number | ''>('');
+  const [synonymInput, setSynonymInput] = useState('');
+  const [synonymError, setSynonymError] = useState<string | null>(null);
   const selectedMonth = useStore(s => s.selectedMonth);
+  const categories = useStore(s => s.categories);
+  const categorySynonyms = useStore(s => s.categorySynonyms);
+  const loadCategories = useStore(s => s.loadCategories);
+  const loadCategorySynonyms = useStore(s => s.loadCategorySynonyms);
 
   useEffect(() => {
     apiPush.schedule().then(setSchedule).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    loadCategories();
+    loadCategorySynonyms();
+  }, [loadCategories, loadCategorySynonyms]);
+
+  const addSynonym = async () => {
+    const categoryId = synonymMainId;
+    const syn = synonymInput.trim();
+    if (categoryId === '' || !syn) return;
+    setSynonymError(null);
+    try {
+      await apiSynonyms.add(categoryId, syn);
+      await loadCategorySynonyms();
+      setSynonymInput('');
+    } catch (err) {
+      setSynonymError((err as Error).message);
+    }
+  };
+
+  const removeSynonym = async (id: number) => {
+    setSynonymError(null);
+    try {
+      await apiSynonyms.delete(id);
+      await loadCategorySynonyms();
+    } catch (err) {
+      setSynonymError((err as Error).message);
+    }
+  };
 
   const checkApi = () => {
     setApiStatus('checking');
@@ -128,6 +164,86 @@ export function Settings() {
               </button>
             </div>
           )}
+        </section>
+
+        <section>
+          <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">
+            Category synonyms
+          </h2>
+          <p className="text-slate-500 text-sm mb-3">
+            Map synonym names to a main category. When you add cashback with a synonym (e.g. Супермаркеты), it will be saved under the main category (e.g. Продукты).
+          </p>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs text-slate-500 mb-1">Main category</label>
+              <select
+                value={synonymMainId === '' ? '' : String(synonymMainId)}
+                onChange={e => setSynonymMainId(e.target.value ? parseInt(e.target.value, 10) : '')}
+                className="w-full px-3 py-2.5 bg-slate-800 border border-slate-600 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">Select category</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="block text-xs text-slate-500 mb-1">Synonym</label>
+                <input
+                  type="text"
+                  value={synonymInput}
+                  onChange={e => setSynonymInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSynonym())}
+                  placeholder="e.g. Супермаркеты"
+                  className="w-full px-3 py-2.5 bg-slate-800 border border-slate-600 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={addSynonym}
+                  disabled={synonymMainId === '' || !synonymInput.trim()}
+                  className="py-2.5 px-4 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-medium rounded-lg"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+            {synonymError && <p className="text-sm text-red-400">{synonymError}</p>}
+            {categorySynonyms.length > 0 && (
+              <ul className="space-y-2 mt-3">
+                {Object.entries(
+                  categorySynonyms.reduce<Record<string, typeof categorySynonyms>>((acc, s) => {
+                    if (!acc[s.category_name]) acc[s.category_name] = [];
+                    acc[s.category_name].push(s);
+                    return acc;
+                  }, {})
+                ).map(([main, syns]) => (
+                  <li key={main} className="py-2 px-3 bg-slate-800 rounded-lg">
+                    <span className="text-slate-400 text-sm">{main}</span>
+                    <ul className="mt-1.5 space-y-1">
+                      {syns.map(s => (
+                        <li key={s.id} className="flex items-center justify-between text-sm">
+                          <span className="text-slate-200">{s.synonym}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeSynonym(s.id)}
+                            className="p-1 text-slate-500 hover:text-red-400 rounded"
+                            aria-label="Remove synonym"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </section>
 
         <section>

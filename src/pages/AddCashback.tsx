@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { runOcr } from '../lib/ocr';
+import { resolveCategoryName } from '../lib/synonyms';
 import { getDefaultMonth } from '../lib/months';
 import type { CashbackRow } from '../components/CashbackForm';
 import { MonthSelector } from '../components/MonthSelector';
@@ -29,10 +30,12 @@ export function AddCashback() {
   const loadCategories = useStore(s => s.loadCategories);
   const createCategory = useStore(s => s.createCategory);
   const createBank = useStore(s => s.createBank);
+  const getSynonymsMap = useStore(s => s.getSynonymsMap);
 
   useEffect(() => {
     loadBanks();
     loadCategories();
+    useStore.getState().loadCategorySynonyms();
   }, []);
 
   useEffect(() => {
@@ -50,10 +53,12 @@ export function AddCashback() {
       const results = await runOcr(file);
       let categoriesList = await apiCategories.list();
       const rows: CashbackRow[] = [];
+      const synonymsMap = getSynonymsMap();
       for (const r of results) {
-        let cat = categoriesList.find(c => c.name.toLowerCase() === r.category.toLowerCase());
+        const resolvedName = resolveCategoryName(r.category, synonymsMap);
+        let cat = categoriesList.find(c => c.name.toLowerCase() === resolvedName.toLowerCase());
         if (!cat) {
-          cat = await createCategory(r.category);
+          cat = await createCategory(resolvedName);
           categoriesList = [...categoriesList, cat];
         }
         rows.push({
