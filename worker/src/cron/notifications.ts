@@ -2,19 +2,14 @@ import { buildPushPayload, type PushSubscription, type PushMessage } from '@bloc
 
 interface NotificationRule {
   day: number;
-  banks: string[];
 }
-
-const DEFAULT_BANK_NAMES = [
-  'Tbank', 'Яндекс', 'Сбербанк', 'Озон', 'Альфа', 'ВТБ', 'Зенит', 'Газпром', 'МТС', 'Уралсиб',
-];
 
 function lastDayOfMonth(date: Date): number {
   return new Date(date.getUTCFullYear(), date.getUTCMonth() + 1, 0).getUTCDate();
 }
 
 const NOTIFICATION_SCHEDULE: NotificationRule[] = [
-  { day: -1, banks: DEFAULT_BANK_NAMES },
+  { day: -1 },
 ];
 
 interface Env {
@@ -41,9 +36,6 @@ export async function handleCron(env: Env): Promise<void> {
   );
   if (todayRules.length === 0) return;
 
-  const banksToNotify = todayRules.flatMap(r => r.banks);
-  if (banksToNotify.length === 0) return;
-
   const result = await env.DB.prepare(
     'SELECT endpoint, p256dh, auth FROM push_subscriptions'
   ).all<StoredSubscription>();
@@ -56,12 +48,10 @@ export async function handleCron(env: Env): Promise<void> {
     privateKey: env.VAPID_PRIVATE_KEY,
   };
 
-  const bankList = banksToNotify.join(', ');
   const message: PushMessage = {
     data: {
-      title: 'Обновить кэшбэк',
-      body: `Пора обновить: ${bankList}`,
-      banks: banksToNotify,
+      title: 'Выбери кэшбэки',
+      body: '',
       url: `${env.FRONTEND_ORIGIN}/add`,
     },
     options: { ttl: 60 },
@@ -91,6 +81,39 @@ export async function handleCron(env: Env): Promise<void> {
   });
 
   await Promise.allSettled(sendPromises);
+}
+
+export async function sendTestPush(env: Env, row: StoredSubscription): Promise<void> {
+  const vapid = {
+    subject: env.VAPID_SUBJECT,
+    publicKey: env.VAPID_PUBLIC_KEY,
+    privateKey: env.VAPID_PRIVATE_KEY,
+  };
+  const message: PushMessage = {
+    data: {
+      title: 'Выбери кэшбэки',
+      body: 'Test notification',
+      url: `${env.FRONTEND_ORIGIN}/add`,
+    },
+    options: { ttl: 60 },
+  };
+  const subscription: PushSubscription = {
+    endpoint: row.endpoint,
+    expirationTime: null,
+    keys: { p256dh: row.p256dh, auth: row.auth },
+  };
+  const payload = await buildPushPayload(message, subscription, vapid);
+  const res = await fetch(row.endpoint, {
+    method: payload.method,
+    headers: payload.headers as HeadersInit,
+    body: payload.body,
+  });
+  if (res.status === 410 || res.status === 404) {
+    await env.DB.prepare(
+      'DELETE FROM push_subscriptions WHERE endpoint = ?'
+    ).bind(row.endpoint).run();
+  }
+  if (!res.ok) throw new Error(`Push failed: ${res.status}`);
 }
 
 export { NOTIFICATION_SCHEDULE };
