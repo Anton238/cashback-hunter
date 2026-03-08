@@ -24,7 +24,7 @@ app.use('/api/*', async (c, next) => {
   console.log('[Worker]', c.req.method, url.pathname, 'Origin:', c.req.header('Origin') ?? 'none');
   const origin = c.env?.FRONTEND_ORIGIN ?? 'http://localhost:5173';
   return cors({
-    origin: [origin, 'http://localhost:5173', 'http://localhost:4173'],
+    origin: [origin, 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:4173'],
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
   })(c, next);

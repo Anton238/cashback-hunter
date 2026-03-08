@@ -190,8 +190,8 @@ node -e "const w=require('web-push'); const k=w.generateVAPIDKeys(); console.log
 - **Environment variables (обязательно для работы приложения):**  
   Фронт на Pages и API (Worker) на разных доменах, поэтому нужно явно указать URL Worker. В **Variables and Secrets** добавь переменную для окружения **Production**:
   - **Name:** `VITE_API_URL`
-  - **Value:** `https://cashback-hunter-api.antonsorokin238.workers.dev`  
-  (подставь свой Worker URL из дашборда: Workers & Pages → cashback-hunter-api → в Overview указан домен вида `cashback-hunter-api.ИМЯ.workers.dev`).  
+  - **Value:** `https://cashback-hunter-api.antonsorokin238.workers.dev/api`  
+  (обязательно с суффиксом `/api`: роуты Worker — `/api/banks`, `/api/categories` и т.д. Подставь свой домен из дашборда.)  
   Без этой переменной запросы уйдут на `/api` на самом Pages и приложение выдаст ошибку «Unexpected token '<'».
 
 Нажми **Save and Deploy**. Дождись окончания сборки. Сайт появится по адресу вида `https://cashback-hunter.pages.dev` (или как укажет Cloudflare).
@@ -274,7 +274,7 @@ git push origin main
 
 Если до `*.workers.dev` или `*.pages.dev` нет доступа (сеть, блокировка), можно поднять и фронт, и API у себя.
 
-1. В корне проекта в **.env.local** должно быть: `VITE_API_URL=http://localhost:8787` (уже настроено для локального API).
+1. В корне проекта в **.env.local** должно быть: `VITE_API_URL=http://localhost:8787/api`.
 2. **Терминал 1 — API:**  
    `cd worker && npx wrangler dev`  
    Дождись сообщения вида `Ready on http://localhost:8787`. Локально wrangler подключается к твоей D1 (remote) и к секретам Cloudflare, поэтому нужен залогиненный `wrangler login` или `CLOUDFLARE_API_TOKEN`.
@@ -283,7 +283,7 @@ git push origin main
    Открой в браузере **http://localhost:5173**.
 4. Запросы пойдут на локальный Worker (localhost:8787), данные — из твоей D1 в Cloudflare.
 
-Чтобы снова тестировать против задеплоенного API, в **.env.local** поменяй на `VITE_API_URL=https://cashback-hunter-api.<твой-поддомен>.workers.dev` или удали `.env.local`.
+Чтобы снова тестировать против задеплоенного API, в **.env.local** укажи `VITE_API_URL=https://cashback-hunter-api.<твой-поддомен>.workers.dev/api` или удали `.env.local`.
 
 ---
 

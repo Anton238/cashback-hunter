@@ -102,7 +102,7 @@ export const apiCashback = {
 };
 
 export const apiHealth = {
-  check: () => request<{ ok: boolean }>('/api/health'),
+  check: () => request<{ ok: boolean }>('/health'),
 };
 
 // Push
