@@ -6,7 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "cashback-hunter"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+database_id = "9be3f10f-e4c1-44ad-bdb5-2406a51e664a"
 
 [triggers]
 crons = ["0 8 * * *"]
