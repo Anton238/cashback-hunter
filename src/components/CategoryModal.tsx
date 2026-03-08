@@ -28,7 +28,11 @@ export function CategoryModal({
 }: Props) {
   const [rows, setRows] = useState<BankRow[]>([]);
   const [loading, setLoading] = useState(!!summary);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const [saving, setSaving] = useState(false);
   const deleteCashbackEntry = useStore(s => s.deleteCashbackEntry);
+  const updateCashbackEntry = useStore(s => s.updateCashbackEntry);
 
   useEffect(() => {
     if (!summary) return;
@@ -46,6 +50,30 @@ export function CategoryModal({
       return;
     }
     setRows(prev => prev.filter(r => r.id !== id));
+  };
+
+  const startEdit = (row: BankRow) => {
+    setEditingId(row.id);
+    setEditValue(String(row.percentage));
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditValue('');
+  };
+
+  const saveEdit = async () => {
+    if (editingId == null) return;
+    const pct = parseFloat(editValue.replace(',', '.'));
+    if (Number.isNaN(pct) || pct <= 0 || pct > 100) return;
+    setSaving(true);
+    try {
+      await updateCashbackEntry(editingId, pct);
+      setRows(prev => prev.map(r => r.id === editingId ? { ...r, percentage: pct } : r));
+      cancelEdit();
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!summary) return null;
@@ -89,18 +117,63 @@ export function CategoryModal({
                       {row.bank_name}
                     </span>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-indigo-400 font-semibold tabular-nums">
-                        {row.percentage}%
-                      </span>
-                      <button
-                        onClick={() => handleDelete(row.id)}
-                        className="p-1 text-slate-500 hover:text-red-400 rounded"
-                        aria-label="Delete"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
+                      {editingId === row.id ? (
+                        <>
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            value={editValue}
+                            onChange={e => setEditValue(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') saveEdit();
+                              if (e.key === 'Escape') cancelEdit();
+                            }}
+                            className="w-14 px-2 py-1 bg-slate-700 border border-slate-600 rounded text-indigo-400 font-semibold text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            autoFocus
+                          />
+                          <span className="text-slate-400">%</span>
+                          <button
+                            type="button"
+                            onClick={saveEdit}
+                            disabled={saving}
+                            className="p-1 text-emerald-400 hover:text-emerald-300 rounded"
+                            aria-label="Save"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelEdit}
+                            className="p-1 text-slate-500 hover:text-slate-300 rounded"
+                            aria-label="Cancel"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => startEdit(row)}
+                            className="text-indigo-400 font-semibold tabular-nums hover:text-indigo-300"
+                          >
+                            {row.percentage}%
+                          </button>
+                          <button
+                            onClick={() => handleDelete(row.id)}
+                            className="p-1 text-slate-500 hover:text-red-400 rounded"
+                            aria-label="Delete"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </>
+                      )}
                     </div>
                   </li>
                 ))}

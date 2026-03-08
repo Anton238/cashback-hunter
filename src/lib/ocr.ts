@@ -77,10 +77,13 @@ function parseOcrText(text: string): OcrResult[] {
 }
 
 export async function runOcr(file: File): Promise<OcrResult[]> {
-  const Tesseract = await import('tesseract.js');
+  const { createWorker } = await import('tesseract.js');
   const processedImage = await preprocessCanvas(file);
-  const { data: { text } } = await Tesseract.recognize(processedImage, 'rus', {
-    logger: () => {},
-  });
-  return parseOcrText(text);
+  const worker = await createWorker('rus', 1, { logger: () => {} });
+  try {
+    const { data: { text } } = await worker.recognize(processedImage);
+    return parseOcrText(text);
+  } finally {
+    await worker.terminate();
+  }
 }
