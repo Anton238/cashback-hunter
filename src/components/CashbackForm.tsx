@@ -43,16 +43,23 @@ export function CashbackForm({
   const bank = bankId ? banks.find(b => b.id === bankId) : null;
   if (!bankId || !bank) return null;
 
-  const addRow = async () => {
-    const pct = parseFloat(percentageInput.replace(',', '.'));
+  const buildRowFromInputs = async (): Promise<CashbackRow | null> => {
+    const rawPct = percentageInput.trim();
+    const name = categoryInput.trim();
+
+    if (!name && !rawPct) {
+      return null;
+    }
+
+    const pctString = rawPct || '5';
+    const pct = parseFloat(pctString.replace(',', '.'));
     if (Number.isNaN(pct) || pct <= 0 || pct > 100) {
       setError('Enter valid percentage (1–100)');
-      return;
+      return null;
     }
-    const name = categoryInput.trim();
     if (!name) {
       setError('Enter category name');
-      return;
+      return null;
     }
     setError(null);
     const resolvedName = resolveCategoryName(name, getSynonymsMap());
@@ -60,7 +67,17 @@ export function CashbackForm({
     if (!cat) {
       cat = await createCategory(resolvedName);
     }
-    setRows(prev => [...prev, { category_id: cat.id, category_name: cat.name, percentage: percentageInput }]);
+    return {
+      category_id: cat.id,
+      category_name: cat.name,
+      percentage: pctString,
+    };
+  };
+
+  const addRow = async () => {
+    const row = await buildRowFromInputs();
+    if (!row) return;
+    setRows(prev => [...prev, row]);
     setCategoryInput('');
     setPercentageInput('');
   };
@@ -71,14 +88,19 @@ export function CashbackForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (rows.length === 0) {
+    let rowsToSave = rows;
+    const pendingRow = await buildRowFromInputs();
+    if (pendingRow) {
+      rowsToSave = [...rowsToSave, pendingRow];
+    }
+    if (rowsToSave.length === 0) {
       setError('Add at least one category with percentage');
       return;
     }
     setSaving(true);
     setError(null);
     try {
-      for (const row of rows) {
+      for (const row of rowsToSave) {
         const pct = parseFloat(row.percentage.replace(',', '.'));
         if (!Number.isNaN(pct)) {
           await saveCashbackEntry({
@@ -90,6 +112,9 @@ export function CashbackForm({
           });
         }
       }
+      setRows([]);
+      setCategoryInput('');
+      setPercentageInput('');
       onSaved();
     } catch (err) {
       setError((err as Error).message);

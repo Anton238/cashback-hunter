@@ -101,7 +101,7 @@ export function Settings() {
     <div className="min-h-screen bg-violet-50/50 text-slate-800">
       <header className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
         <div className="max-w-lg mx-auto px-4 py-3">
-          <h1 className="text-lg font-bold text-slate-800">Settings</h1>
+          <h1 className="text-xl font-bold text-slate-800">Settings</h1>
         </div>
       </header>
 

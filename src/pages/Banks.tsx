@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
+import { getBankUrl } from '../lib/constants';
 import { BankIcon } from '../components/BankIcon';
 import { BottomNav } from '../components/BottomNav';
 
@@ -22,7 +23,7 @@ export function Banks() {
     <div className="min-h-screen bg-violet-50/50 text-slate-800">
       <header className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
         <div className="max-w-lg mx-auto px-4 py-3">
-          <h1 className="text-lg font-bold text-slate-800">Banks</h1>
+          <h1 className="text-xl font-bold text-slate-800">Banks</h1>
           <p className="text-slate-500 text-sm mt-1">Last update date per bank</p>
         </div>
       </header>
@@ -40,28 +41,41 @@ export function Banks() {
           </div>
         ) : (
           <ul className="space-y-2">
-            {banks.map(bank => (
-              <li
-                key={bank.id}
-                className="flex items-center justify-between gap-3 py-3 px-4 bg-white border border-slate-200 rounded-xl shadow-sm"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <BankIcon bankName={bank.name} size="md" />
-                  <span className="font-medium text-slate-800 truncate">{bank.name}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-slate-500 text-sm tabular-nums">
-                    {formatDate(bank.updated_at)}
-                  </span>
-                  <Link
-                    to={`/add?bankId=${bank.id}`}
-                    className="text-violet-600 hover:text-violet-500 text-sm font-medium"
-                  >
-                    Update
-                  </Link>
-                </div>
-              </li>
-            ))}
+            {banks.map(bank => {
+              const url = getBankUrl(bank.name);
+              return (
+                <li
+                  key={bank.id}
+                  className="flex items-center justify-between gap-3 py-3 px-4 bg-white border border-slate-200 rounded-xl shadow-sm"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <BankIcon bankName={bank.name} size="md" />
+                    <span className="font-medium text-slate-800 truncate">{bank.name}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-slate-500 text-sm tabular-nums">
+                      {formatDate(bank.updated_at)}
+                    </span>
+                    {url && (
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-slate-500 hover:text-slate-700 text-sm font-medium"
+                      >
+                        Open
+                      </a>
+                    )}
+                    <Link
+                      to={`/add?bankId=${bank.id}`}
+                      className="text-violet-600 hover:text-violet-500 text-sm font-medium"
+                    >
+                      Update
+                    </Link>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </main>

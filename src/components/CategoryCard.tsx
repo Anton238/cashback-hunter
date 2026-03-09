@@ -9,7 +9,7 @@ interface Props {
 export function CategoryCard({ summary, onClick }: Props) {
   const pct = summary.max_percentage;
   const color =
-    pct > 5 ? 'text-orange-400' :
+    pct > 5 ? 'text-red-500' :
     pct === 5 ? 'text-emerald-400' :
     pct > 1 ? 'text-amber-400' :
     'text-slate-400';

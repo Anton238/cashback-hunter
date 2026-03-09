@@ -83,6 +83,7 @@ export function AddCashback() {
   const handleSaved = useCallback(() => {
     setSaved(true);
     setPrefillRows([]);
+    setSelectedBankId(null);
     setTimeout(() => setSaved(false), 2000);
   }, []);
 
@@ -91,8 +92,8 @@ export function AddCashback() {
   return (
     <div className="min-h-screen bg-violet-50/50 text-slate-800">
       <header className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
-        <div className="max-w-lg mx-auto px-4 py-2">
-          <h1 className="text-lg font-bold text-slate-800">Add cashback</h1>
+        <div className="max-w-lg mx-auto px-4 py-3">
+          <h1 className="text-xl font-bold text-slate-800">Add cashback</h1>
           <div className="mt-2">
             <MonthSelector value={monthOption} onChange={setMonthOption} />
           </div>

@@ -95,6 +95,10 @@ const BANK_NAME_ALIASES: Record<string, string> = {
   'озон банк': 'озон',
 };
 
+const BANK_URLS: Record<string, string> = {
+  'альфа': 'https://web.alfabank.ru',
+};
+
 export function getBankIconUrl(bankName: string): string | undefined {
   if (!bankName?.trim()) return undefined;
   const key = bankName.trim().toLowerCase();
@@ -103,4 +107,11 @@ export function getBankIconUrl(bankName: string): string | undefined {
     const n = b.name.toLowerCase();
     return normalized.includes(n) || n.includes(normalized);
   })?.iconUrl;
+}
+
+export function getBankUrl(bankName: string): string | undefined {
+  if (!bankName?.trim()) return undefined;
+  const key = bankName.trim().toLowerCase();
+  const normalized = BANK_NAME_ALIASES[key] ?? key;
+  return BANK_URLS[normalized];
 }
