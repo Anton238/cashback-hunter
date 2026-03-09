@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { isEssentialCategory, essentialSortIndex } from '../lib/constants';
 import type { CategorySummary } from '../lib/api';
@@ -9,6 +9,7 @@ import { CategoryModal } from '../components/CategoryModal';
 import { InstallPrompt } from '../components/InstallPrompt';
 import { BottomNav } from '../components/BottomNav';
 import { apiPush } from '../lib/api';
+import { getThreeMonths } from '../lib/months';
 
 export function Home() {
   const selectedMonth = useStore(s => s.selectedMonth);
@@ -21,6 +22,7 @@ export function Home() {
   const [modalSummary, setModalSummary] = useState<CategorySummary | null>(null);
   const [todayReminder, setTodayReminder] = useState(false);
   const navigate = useNavigate();
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     refreshAll();
@@ -43,10 +45,43 @@ export function Home() {
       return ia !== ib ? ia - ib : a.category_name.localeCompare(b.category_name);
     });
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    touchStartRef.current = { x: t.clientX, y: t.clientY };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current || e.changedTouches.length === 0) return;
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+    if (absDx < 50 || absDx <= absDy) return;
+
+    const options = getThreeMonths();
+    const currentIndex = options.findIndex(
+      o => o.month === selectedMonth.month && o.year === selectedMonth.year,
+    );
+    if (currentIndex === -1) return;
+
+    const offset = dx < 0 ? 1 : -1;
+    const next = options[currentIndex + offset];
+    if (!next) return;
+    setSelectedMonth(next);
+  };
+
   return (
-    <div className="min-h-screen bg-violet-50/50 text-slate-800">
+    <div
+      className="min-h-screen bg-violet-50/50 text-slate-800"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <header className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
-        <div className="max-w-lg mx-auto px-4 py-3">
+        <div className="max-w-lg mx-auto px-4 pt-6 pb-3">
           <h1 className="text-2xl font-bold text-slate-800">Cashback Hunter</h1>
           <div className="mt-2">
             <MonthSelector value={selectedMonth} onChange={setSelectedMonth} />

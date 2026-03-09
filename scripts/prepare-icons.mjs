@@ -9,9 +9,7 @@ const sourcePath = path.join(root, 'public', 'pwa-icon-source.png');
 const iconsDir = path.join(root, 'public', 'icons');
 const BG = '#0f172a';
 
-const buf = await sharp(sourcePath)
-  .trim({ background: '#ffffff', threshold: 40 })
-  .toBuffer();
+const buf = await sharp(sourcePath).toBuffer();
 
 const { width: w, height: h } = await sharp(buf).metadata();
 const side = Math.max(w, h);
