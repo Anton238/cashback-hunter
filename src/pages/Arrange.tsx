@@ -291,7 +291,6 @@ export function Arrange() {
                       )}
                     </div>
                   )}
-                  </div>
                 </li>
               ))}
             </ul>
