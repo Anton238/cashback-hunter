@@ -10,6 +10,7 @@ import { InstallPrompt } from '../components/InstallPrompt';
 import { BottomNav } from '../components/BottomNav';
 import { apiPush } from '../lib/api';
 import { getThreeMonths } from '../lib/months';
+import appIcon from '/pwa-icon-source.png';
 
 export function Home() {
   const selectedMonth = useStore(s => s.selectedMonth);
@@ -82,7 +83,14 @@ export function Home() {
     >
       <header className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
         <div className="max-w-lg mx-auto px-4 pt-6 pb-3">
-          <h1 className="text-2xl font-bold text-slate-800">Cashback Hunter</h1>
+          <div className="flex items-center gap-3">
+            <img
+              src={appIcon}
+              alt="Cashback Hunter"
+              className="h-8 w-8 rounded-3xl shadow-sm object-cover"
+            />
+            <h1 className="text-2xl font-bold text-slate-800">Cashback Hunter</h1>
+          </div>
           <div className="mt-2">
             <MonthSelector value={selectedMonth} onChange={setSelectedMonth} />
           </div>
