@@ -25,7 +25,9 @@ export function usePush() {
     }
     navigator.serviceWorker.ready.then(async (reg) => {
       const sub = await reg.pushManager.getSubscription();
-      setState(sub ? 'subscribed' : 'unsubscribed');
+      if (!sub) { setState('unsubscribed'); return; }
+      try { await apiPush.subscribe(sub.toJSON()); setState('subscribed'); }
+      catch { setState('unsubscribed'); }
     });
   }, []);
 
@@ -41,8 +43,8 @@ export function usePush() {
       await apiPush.subscribe(sub.toJSON());
       setState('subscribed');
     } catch (err) {
-      console.error('Push subscribe error:', err);
       setState(Notification.permission === 'denied' ? 'denied' : 'unsubscribed');
+      throw err;
     }
   }, []);
 
@@ -57,8 +59,8 @@ export function usePush() {
       }
       setState('unsubscribed');
     } catch (err) {
-      console.error('Push unsubscribe error:', err);
       setState('subscribed');
+      throw err;
     }
   }, []);
 

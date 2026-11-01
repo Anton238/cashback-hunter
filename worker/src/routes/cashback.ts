@@ -31,7 +31,7 @@ cashback.get('/', async (c) => {
   const result = await c.env.DB.prepare(`
     SELECT
       ce.id, ce.bank_id, ce.category_id, ce.percentage,
-      ce.month, ce.year, ce.photo_local_key, ce.created_at,
+      ce.month, ce.year, ce.photo_local_key, ce.created_at, ce.notes,
       b.name AS bank_name,
       cat.name AS category_name
     FROM cashback_entries ce
@@ -52,36 +52,30 @@ cashback.post('/', async (c) => {
     month: number;
     year: number;
     photo_local_key?: string;
+    notes?: string;
   }>();
 
-  const { bank_id, category_id, percentage, month, year, photo_local_key } = body;
+  const { bank_id, category_id, percentage, month, year, photo_local_key, notes } = body;
 
   if (!bank_id || !category_id || percentage == null || !month || !year) {
     return c.json({ error: 'bank_id, category_id, percentage, month, year are required' }, 400);
   }
+
+  if (!Number.isFinite(percentage) || percentage < 0 || percentage > 100 || !Number.isInteger(month) || month < 1 || month > 12 || !Number.isInteger(year)) return c.json({ error: 'Invalid cashback values' }, 400);
 
   // Обновляем дату последнего обновления банка
   await c.env.DB.prepare(
     "UPDATE banks SET updated_at = datetime('now') WHERE id = ?"
   ).bind(bank_id).run();
 
-  try {
-    const result = await c.env.DB.prepare(`
-      INSERT INTO cashback_entries (bank_id, category_id, percentage, month, year, photo_local_key)
-      VALUES (?, ?, ?, ?, ?, ?)
-      RETURNING *
-    `).bind(bank_id, category_id, percentage, month, year, photo_local_key ?? null).first();
-    return c.json(result, 201);
-  } catch {
-    // При конфликте (уже существует) — обновляем
-    const result = await c.env.DB.prepare(`
-      UPDATE cashback_entries
-      SET percentage = ?, photo_local_key = ?
-      WHERE bank_id = ? AND category_id = ? AND month = ? AND year = ?
-      RETURNING *
-    `).bind(percentage, photo_local_key ?? null, bank_id, category_id, month, year).first();
-    return c.json(result, 200);
-  }
+  const result = await c.env.DB.prepare(`
+    INSERT INTO cashback_entries (bank_id, category_id, percentage, month, year, photo_local_key, notes)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(bank_id, category_id, month, year) DO UPDATE SET
+      percentage = excluded.percentage, photo_local_key = excluded.photo_local_key, notes = excluded.notes
+    RETURNING *
+  `).bind(bank_id, category_id, percentage, month, year, photo_local_key ?? null, notes ?? '').first();
+  return c.json(result, 201);
 });
 
 cashback.put('/:id', async (c) => {
@@ -117,20 +111,10 @@ cashback.delete('/:id', async (c) => {
     'DELETE FROM cashback_entries WHERE id = ?'
   ).bind(id).run();
 
-  // Удаляем категорию если у неё больше нет записей
-  const remaining = await c.env.DB.prepare(
-    'SELECT COUNT(*) as cnt FROM cashback_entries WHERE category_id = ?'
-  ).bind(entry.category_id).first<{ cnt: number }>();
+  // Keep the category and its synonyms even when its last cashback is removed.
+  return c.json({ success: true, categoryDeleted: false });
 
-  let categoryDeleted = false;
-  if (remaining && remaining.cnt === 0) {
-    await c.env.DB.prepare(
-      'DELETE FROM categories WHERE id = ?'
-    ).bind(entry.category_id).run();
-    categoryDeleted = true;
-  }
 
-  return c.json({ success: true, categoryDeleted });
 });
 
 // GET /api/cashback/by-category/:categoryId?month=3&year=2025

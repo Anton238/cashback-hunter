@@ -24,6 +24,7 @@ function resolveSchedule(): { day: number }[] {
 const push = new Hono<{ Bindings: Env }>();
 
 push.get('/vapid-public-key', (c) => {
+  if (!c.env.VAPID_PUBLIC_KEY || !c.env.VAPID_PRIVATE_KEY) return c.json({ error: 'Напоминания не настроены на сервере' }, 503);
   return c.json({ key: c.env.VAPID_PUBLIC_KEY });
 });
 
@@ -81,8 +82,9 @@ push.post('/test', async (c) => {
   try {
     await sendTestPush(c.env, row);
     return c.json({ success: true });
-  } catch (err) {
-    return c.json({ error: (err as Error).message }, 500);
+  } catch {
+    console.error('Push test failed');
+    return c.json({ error: 'Не удалось отправить уведомление' }, 500);
   }
 });
 

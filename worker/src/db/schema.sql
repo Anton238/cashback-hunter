@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS banks (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
   name       TEXT NOT NULL UNIQUE,
-  updated_at TEXT
+  updated_at TEXT,
+  selection_limit INTEGER NOT NULL DEFAULT 3
 );
 
 CREATE TABLE IF NOT EXISTS categories (
@@ -24,6 +25,7 @@ CREATE TABLE IF NOT EXISTS cashback_entries (
   month           INTEGER NOT NULL,
   year            INTEGER NOT NULL,
   photo_local_key TEXT,
+  notes TEXT NOT NULL DEFAULT '',
   created_at      TEXT DEFAULT (datetime('now')),
   UNIQUE(bank_id, category_id, month, year)
 );
@@ -34,4 +36,12 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
   p256dh    TEXT NOT NULL,
   auth      TEXT NOT NULL,
   created_at TEXT DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS category_corrections (
+  bank_id INTEGER NOT NULL REFERENCES banks(id) ON DELETE CASCADE,
+  offer_key TEXT NOT NULL,
+  offer_name TEXT NOT NULL,
+  category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY(bank_id, offer_key)
 );

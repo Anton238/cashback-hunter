@@ -13,6 +13,7 @@ export interface Bank {
   id: number;
   name: string;
   updated_at: string | null;
+  selection_limit: number;
 }
 
 export interface Category {
@@ -31,6 +32,7 @@ export interface CashbackEntry {
   created_at: string;
   bank_name: string;
   category_name: string;
+  notes: string;
 }
 
 export interface CategorySummary {
@@ -47,6 +49,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   devLog('request', { path, url });
   const res = await fetch(url, {
     ...init,
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json', ...init?.headers },
   });
   devLog('response', { path, status: res.status, ok: res.ok });
@@ -108,6 +111,7 @@ export const apiCashback = {
     month: number;
     year: number;
     photo_local_key?: string;
+    notes?: string;
   }) => request<CashbackEntry>('/cashback', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: number, percentage: number, photo_local_key?: string) =>
     request<CashbackEntry>(`/cashback/${id}`, { method: 'PUT', body: JSON.stringify({ percentage, photo_local_key }) }),
@@ -161,3 +165,7 @@ export function groupByCategory(entries: CashbackEntry[]): CategorySummary[] {
     b.max_percentage - a.max_percentage
   );
 }
+
+export const recognize = (image: string, bankId: number) => request<{ items: { name: string; category: string; percentage: number; notes: string }[] }>('/recognize', { method: 'POST', body: JSON.stringify({ image, bankId }) });
+
+export const saveCorrection = (bankId: number, categoryId: number, offerName: string) => request<{ success: boolean }>('/category-corrections', { method: 'POST', body: JSON.stringify({ bankId, categoryId, offerName }) });

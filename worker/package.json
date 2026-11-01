@@ -12,10 +12,11 @@
   },
   "dependencies": {
     "@block65/webcrypto-web-push": "^1.0.2",
-    "hono": "^4.7.4"
+    "hono": "^4.7.4",
+    "jose": "^6.2.12"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250307.0",
+    "@cloudflare/workers-types": "^5.20261018.1",
     "typescript": "^5.8.2",
     "wrangler": "^4"
   }

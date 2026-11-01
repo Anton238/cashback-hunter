@@ -56,7 +56,7 @@ export async function handleCron(env: Env): Promise<void> {
     data: {
       title: 'Выбери кэшбэки',
       body: '',
-      url: `${env.FRONTEND_ORIGIN}/add`,
+      url: `${env.FRONTEND_ORIGIN}/?screen=add`,
     },
     options: { ttl: 60 },
   };
@@ -92,8 +92,8 @@ export async function sendTestPush(env: Env, row: StoredSubscription): Promise<v
   const message: PushMessage = {
     data: {
       title: 'Выбери кэшбэки',
-      body: 'Test notification',
-      url: `${env.FRONTEND_ORIGIN}/add`,
+      body: 'Тестовое уведомление',
+      url: `${env.FRONTEND_ORIGIN}/?screen=add`,
     },
     options: { ttl: 60 },
   };

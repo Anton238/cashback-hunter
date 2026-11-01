@@ -39,7 +39,7 @@ banks.post('/', async (c) => {
 
 banks.put('/:id', async (c) => {
   const id = c.req.param('id');
-  const body = await c.req.json<{ name?: string; updated_at?: string }>();
+  const body = await c.req.json<{ name?: string; updated_at?: string; selection_limit?: number }>();
 
   const fields: string[] = [];
   const values: unknown[] = [];
@@ -51,6 +51,12 @@ banks.put('/:id', async (c) => {
   if (body.updated_at !== undefined) {
     fields.push('updated_at = ?');
     values.push(body.updated_at);
+  }
+
+  if (body.selection_limit !== undefined) {
+    if (!Number.isInteger(body.selection_limit) || body.selection_limit < 0 || body.selection_limit > 50) return c.json({ error: 'Invalid selection limit' }, 400);
+    fields.push('selection_limit = ?');
+    values.push(body.selection_limit);
   }
 
   if (fields.length === 0) return c.json({ error: 'Nothing to update' }, 400);
