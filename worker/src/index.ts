@@ -55,25 +55,30 @@ app.post('/api/recognize', async (c) => {
   const client = c.req.header('CF-Connecting-IP') ?? 'unknown';
   const quota = await c.env.AI_LIMITER.limit({ key: client });
   if (!quota.success) return c.json({ error: 'Слишком много запросов, попробуйте через минуту.' }, 429);
-  const data = await c.req.json<{ image: string; bankId: number }>();
+  const data = await c.req.json<{ image: string; bankId?: number }>();
   if (typeof data.image !== 'string' || data.image.length > 5_000_000 || !/^data:image\/(jpeg|png|webp);base64,/.test(data.image)) return c.json({ error: 'Invalid image' }, 400);
-  if (!Number.isInteger(data.bankId) || data.bankId < 1) return c.json({ error: 'Invalid bank' }, 400);
-  const bank = await c.env.DB.prepare('SELECT id FROM banks WHERE id = ?').bind(data.bankId).first();
-  if (!bank) return c.json({ error: 'Bank not found' }, 404);
+  if (data.bankId !== undefined && (!Number.isInteger(data.bankId) || data.bankId < 1)) return c.json({ error: 'Invalid bank' }, 400);
+  const banks = await c.env.DB.prepare('SELECT id, name FROM banks ORDER BY name').all<{ id: number; name: string }>();
+  if (data.bankId && !banks.results.some(b => b.id === data.bankId)) return c.json({ error: 'Bank not found' }, 404);
   const categories = await c.env.DB.prepare('SELECT name FROM categories ORDER BY name LIMIT 200').all<{ name: string }>();
-  const corrections = await c.env.DB.prepare(`SELECT cc.offer_name, cat.name AS category
+  const corrections = await c.env.DB.prepare(`SELECT cc.bank_id, cc.offer_name, cat.name AS category
     FROM category_corrections cc JOIN categories cat ON cat.id = cc.category_id
-    WHERE cc.bank_id = ? ORDER BY cc.updated_at DESC LIMIT 200`).bind(data.bankId).all<{ offer_name: string; category: string }>();
+    ORDER BY cc.updated_at DESC LIMIT 200`).all<{ bank_id: number; offer_name: string; category: string }>();
   try {
     const result = await c.env.AI.run('@cf/google/gemma-4-26b-a4b-it', {
-      messages: [{ role: 'user', content: [{ type: 'text', text: `Прочитай все предложения кэшбэка на изображении. Верни только JSON массив объектов {"name":"название на скриншоте","percentage":5,"category":"подходящая существующая категория или новая","notes":"лимит и важные условия"}. Не придумывай данные. Предложения для конкретного магазина, доставки, приложения или сервиса выделяй в отдельную конкретную категорию: «Дикси Доставка» не является общей категорией «Продукты», «Поезда в Т-Путешествиях» должны иметь категорию «Поезда в Т-Путешествиях», а не «Транспорт» или «Т-Путешествия», скидка WB не является всем шопингом. Не объединяй технику с ремонтом. Разные тарифы одного сервиса допускается относить к общей категории, но возвращай каждое предложение и его процент отдельно. Плюсы считай кэшбэком. Существующие категории: ${JSON.stringify(categories.results.map(x => x.name))}. Ранее пользователь исправил соответствия для этого банка: ${JSON.stringify(corrections.results)}. Используй эти исправления для совпадающих названий. Процент укажи числом без знака %. Не включай личные данные.` }, { type: 'image_url', image_url: { url: data.image } }] }], max_tokens: 2048, chat_template_kwargs: { enable_thinking: false },
+      messages: [{ role: 'user', content: [{ type: 'text', text: `Определи банк по видимым признакам скриншота, затем прочитай предложения. Верни только JSON объект {"bank_id":числовой id банка или null, "items":[{"name":"название на скриншоте","percentage":5,"category":"категория","notes":"лимит и важные условия"}]}. Банк должен быть только из списка: ${JSON.stringify(banks.results)}. Не угадывай при недостатке признаков: возвращай null. Подсказки по банкам: ОТП — ярко-салатовый логотип «отпбанк», тёмные плитки с изображениями категорий; Уралсиб — адрес bonus.uralsibbank.ru, фиолетовые иконки и экран «Приятных покупок! Вы выбрали»; ВТБ — адрес online.vtb.ru, тёмный экран «Кешбэк», синие ссылки «Подробнее»; Озон — синяя плашка ozon банк и экран «Категории в ноябре»; Тбанк — жёлтая плашка T-BANK, экран «Категории в ноябре» и «Т-Путешествия»; Яндекс — логотип Y PAY и SELECT PLUSES, фиолетовые значки плюсов. Подсказки не гарантируют банк; ориентируйся на видимые логотипы и адреса, не на предлагаемые категории. Не придумывай данные. Отдельные магазины, доставки и сервисы относить в отдельную категорию: «Дикси Доставка» не общие «Продукты», «Поезда в Т-Путешествиях» не общий «Транспорт» и не все «Т-Путешествия». Не объединяй технику с ремонтом. Разные тарифы одного сервиса можно относить к одной категории, но верни каждое предложение отдельно. Плюсы считай кэшбэком. Существующие категории: ${JSON.stringify(categories.results.map(x => x.name))}. Ранее исправленные соответствия, сгруппированные по bank_id: ${JSON.stringify(corrections.results)}; используй их только для соответствующего банка. Процент укажи числом без знака %. Не включай личные данные.` }, { type: 'image_url', image_url: { url: data.image } }] }], max_tokens: 2048, chat_template_kwargs: { enable_thinking: false },
     } as never) as { choices?: { message?: { content?: string } }[] };
     const raw = result.choices?.[0]?.message?.content ?? '';
-    const match = raw.match(/\[[\s\S]*\]/);
+    const match = raw.match(/\{[\s\S]*\}/);
     if (!match) return c.json({ error: 'Не удалось прочитать ответ модели. Попробуйте другое изображение или ручной ввод.' }, 422);
-    const items: unknown = JSON.parse(match[0]);
-    if (!Array.isArray(items)) return c.json({ error: 'Некорректный ответ модели' }, 422);
-    const correctionMap = new Map(corrections.results.map(x => [x.offer_name.trim().toLocaleLowerCase('ru'), x.category]));
+    const parsed: unknown = JSON.parse(match[0]);
+    if (!parsed || typeof parsed !== 'object' || !Array.isArray((parsed as { items?: unknown }).items)) return c.json({ error: 'Некорректный ответ модели' }, 422);
+    const answer = parsed as { bank_id?: unknown; items: unknown[] };
+    const predictedId = Number(answer.bank_id);
+    const predictedBank = answer.bank_id != null && banks.results.some(b => b.id === predictedId) ? predictedId : null;
+    const effectiveBank = data.bankId ?? predictedBank;
+    const correctionMap = new Map(corrections.results.filter(x => x.bank_id === effectiveBank).map(x => [x.offer_name.trim().toLocaleLowerCase('ru'), x.category]));
+    const items = answer.items;
     const corrected = items.slice(0, 100).map((item: unknown) => {
       if (!item || typeof item !== 'object') return item;
       const row = item as Record<string, unknown>;
@@ -82,7 +87,7 @@ app.post('/api/recognize', async (c) => {
       const percent = typeof row.percentage === 'string' ? Number(row.percentage.replace('%', '').replace(',', '.').trim()) : row.percentage;
       return { ...row, percentage: percent, notes: typeof row.notes === 'string' ? row.notes : '', ...(correctionMap.has(key) ? { category: correctionMap.get(key) } : specificCategory ? { category: specificCategory } : {}) };
     });
-    return c.json({ items: corrected });
+    return c.json({ bankId: predictedBank, items: corrected });
   } catch { return c.json({ error: 'Распознавание недоступно. Проверьте квоту Workers AI и настройки модели.' }, 502); }
 });
 

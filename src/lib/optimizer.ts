@@ -1,4 +1,4 @@
-export type Offer = { id: string; bankId: number; category: string; percentage: number; notes: string; name: string; selected: boolean; suggestedCategory?: string };
+export type Offer = { id: string; bankId: number; category: string; percentage: number; notes: string; name: string; selected: boolean; suggestedCategory?: string; photoId?: string };
 
 // Maximum coverage, then maximum total cashback, respecting bank capacities.
 // Successive shortest augmenting paths allow earlier choices to be reassigned.

@@ -168,6 +168,6 @@ export function groupByCategory(entries: CashbackEntry[]): CategorySummary[] {
   );
 }
 
-export const recognize = (image: string, bankId: number) => request<{ items: { name: string; category: string; percentage: number; notes: string }[] }>('/recognize', { method: 'POST', body: JSON.stringify({ image, bankId }) });
+export const recognize = (image: string, bankId?: number) => request<{ bankId: number | null; items: { name: string; category: string; percentage: number; notes: string }[] }>('/recognize', { method: 'POST', body: JSON.stringify({ image, bankId }) });
 
 export const saveCorrection = (bankId: number, categoryId: number, offerName: string) => request<{ success: boolean }>('/category-corrections', { method: 'POST', body: JSON.stringify({ bankId, categoryId, offerName }) });
