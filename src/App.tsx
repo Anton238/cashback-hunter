@@ -60,16 +60,16 @@ export function App() {
     if (!chosen.length) { setError('Выберите хотя бы один кэшбэк.'); return; }
     if (chosen.some(o => !o.category.trim() || !Number.isFinite(o.percentage) || o.percentage < 0 || o.percentage > 100)) { setError('Проверьте категории и проценты.'); return; }
     if (mode === 'arrange' && banks.some(b => chosen.filter(o => o.bankId === b.id).length > (limits[b.id] ?? 0))) { setError('Превышен лимит категорий одного из банков.'); return; }
-    const keys = chosen.map(o => `${o.bankId}:${o.category.trim().toLocaleLowerCase('ru')}`);
-    if (new Set(keys).size !== keys.length) { setError('В одном банке выбрана одна категория несколько раз.'); return; }
-    if (chosen.some(o => entries.some(e => e.bank_id === o.bankId && e.category_name.toLocaleLowerCase('ru') === o.category.trim().toLocaleLowerCase('ru'))) && !confirm('Некоторые категории уже сохранены за этот месяц. Обновить их?')) return;
+    const keys = chosen.map(o => `${o.bankId}:${o.category.trim().toLocaleLowerCase('ru')}:${(o.name.trim() || o.category.trim()).toLocaleLowerCase('ru')}`);
+    if (new Set(keys).size !== keys.length) { setError('Одинаковое предложение добавлено несколько раз.'); return; }
+    if (chosen.some(o => entries.some(e => e.bank_id === o.bankId && e.category_name.toLocaleLowerCase('ru') === o.category.trim().toLocaleLowerCase('ru') && (e.offer_name || '').toLocaleLowerCase('ru') === (o.name.trim() || o.category.trim()).toLocaleLowerCase('ru'))) && !confirm('Некоторые категории уже сохранены за этот месяц. Обновить их?')) return;
     setBusy('Сохраняем…'); setError('');
     try {
       let all = [...categories];
       for (const o of chosen) {
         let cat = all.find(c => c.name.toLocaleLowerCase('ru') === o.category.trim().toLocaleLowerCase('ru'));
         if (!cat) { cat = await apiCategories.create(o.category.trim()); all = [...all, cat]; }
-        await apiCashback.create({ bank_id: o.bankId, category_id: cat.id, percentage: o.percentage, month: month.month, year: month.year, notes: [o.name && o.name !== o.category ? `В банке: ${o.name}` : '', o.notes].filter(Boolean).join(' · ') });
+        await apiCashback.create({ bank_id: o.bankId, category_id: cat.id, percentage: o.percentage, month: month.month, year: month.year, offer_name: o.name.trim() || o.category.trim(), notes: o.notes });
         if (o.suggestedCategory !== undefined && o.name.trim() && o.category.trim().toLocaleLowerCase('ru') !== o.suggestedCategory.trim().toLocaleLowerCase('ru')) await saveCorrection(o.bankId, cat.id, o.name.trim());
         setOffers(old => old.filter(x => x.id !== o.id));
       }
@@ -84,7 +84,7 @@ export function App() {
         <div className="month-switch">{months.map((m,i) => <button key={m.label} className={i === monthIndex ? 'active' : ''} onClick={() => setMonthIndex(i)}><span>{i === 0 ? 'ПРОШЛЫЙ' : i === 1 ? 'ТЕКУЩИЙ' : 'СЛЕДУЮЩИЙ'}</span>{m.label.split(' ')[0]}</button>)}</div>
         <div className="section-line"><div><h2>Категории <span className="count">{grouped.length}</span></h2></div><button className="round-add" onClick={() => { setMonthIndex(monthIndex === 0 ? 1 : monthIndex); setScreen('add'); }}>＋</button></div>
         <input className="search" placeholder="⌕  Найти категорию" value={query} onChange={e => setQuery(e.target.value)} aria-label="Поиск категории"/>
-        <div className="cards">{grouped.map(([name, rows]) => { const sorted = [...rows].sort((a,b) => b.percentage-a.percentage); return <article className="cash-card" key={name}><div className="card-main"><span className="category-icon">{name.slice(0,1).toUpperCase()}</span><div className="card-title"><h3>{name}</h3><p>лучшее предложение · {sorted[0].bank_name}</p></div><strong className="rate">{fmt(sorted[0].percentage)}<small>%</small></strong></div><div className="card-details">{sorted.map(e => <div key={e.id}><span>{e.bank_name} · {fmt(e.percentage)}% {e.notes && `— ${e.notes}`}</span><button onClick={async () => { if (confirm('Удалить этот кэшбэк?')) { try { await apiCashback.delete(e.id); await refresh(); } catch (err) { setError((err as Error).message); } } }} aria-label={`Удалить ${e.bank_name}`}>×</button></div>)}</div></article>; })}</div>
+        <div className="cards">{grouped.map(([name, rows]) => { const sorted = [...rows].sort((a,b) => b.percentage-a.percentage); return <article className="cash-card" key={name}><div className="card-main"><span className="category-icon">{name.slice(0,1).toUpperCase()}</span><div className="card-title"><h3>{name}</h3><p>лучшее предложение · {sorted[0].bank_name}</p></div><strong className="rate">{fmt(sorted[0].percentage)}<small>%</small></strong></div><div className="card-details">{sorted.map(e => <div key={e.id}><span>{e.bank_name} · {fmt(e.percentage)}% {e.offer_name && e.offer_name.toLocaleLowerCase('ru') !== name.toLocaleLowerCase('ru') && `· ${e.offer_name}`} {e.notes && `— ${e.notes}`}</span><button onClick={async () => { if (confirm('Удалить этот кэшбэк?')) { try { await apiCashback.delete(e.id); await refresh(); } catch (err) { setError((err as Error).message); } } }} aria-label={`Удалить ${e.bank_name}`}>×</button></div>)}</div></article>; })}</div>
         {!grouped.length && !error && <div className="empty"><span>✳</span><h3>Пока ничего нет</h3><p>Добавьте категории или скриншоты.</p><button className="primary" onClick={() => { setMonthIndex(monthIndex === 0 ? 1 : monthIndex); setScreen('add'); }}>Добавить кэшбэк</button></div>}
         <div className="baseline"><span>✦</span><div><strong>На всё остальное — 1%</strong><p>Базовый кэшбэк Т-Банка. Проверьте условия вашей карты.</p></div></div></>}
       {screen === 'add' && <><h1>Добавить</h1>

@@ -31,7 +31,7 @@ cashback.get('/', async (c) => {
   const result = await c.env.DB.prepare(`
     SELECT
       ce.id, ce.bank_id, ce.category_id, ce.percentage,
-      ce.month, ce.year, ce.photo_local_key, ce.created_at, ce.notes,
+      ce.month, ce.year, ce.photo_local_key, ce.created_at, ce.notes, ce.offer_name,
       b.name AS bank_name,
       cat.name AS category_name
     FROM cashback_entries ce
@@ -53,9 +53,10 @@ cashback.post('/', async (c) => {
     year: number;
     photo_local_key?: string;
     notes?: string;
+    offer_name?: string;
   }>();
 
-  const { bank_id, category_id, percentage, month, year, photo_local_key, notes } = body;
+  const { bank_id, category_id, percentage, month, year, photo_local_key, notes, offer_name } = body;
 
   if (!bank_id || !category_id || percentage == null || !month || !year) {
     return c.json({ error: 'bank_id, category_id, percentage, month, year are required' }, 400);
@@ -69,12 +70,12 @@ cashback.post('/', async (c) => {
   ).bind(bank_id).run();
 
   const result = await c.env.DB.prepare(`
-    INSERT INTO cashback_entries (bank_id, category_id, percentage, month, year, photo_local_key, notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(bank_id, category_id, month, year) DO UPDATE SET
+    INSERT INTO cashback_entries (bank_id, category_id, percentage, month, year, photo_local_key, notes, offer_name)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(bank_id, category_id, month, year, offer_name) DO UPDATE SET
       percentage = excluded.percentage, photo_local_key = excluded.photo_local_key, notes = excluded.notes
     RETURNING *
-  `).bind(bank_id, category_id, percentage, month, year, photo_local_key ?? null, notes ?? '').first();
+  `).bind(bank_id, category_id, percentage, month, year, photo_local_key ?? null, notes ?? '', typeof offer_name === 'string' ? offer_name.trim() : '').first();
   return c.json(result, 201);
 });
 

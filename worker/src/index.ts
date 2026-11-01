@@ -66,7 +66,7 @@ app.post('/api/recognize', async (c) => {
     WHERE cc.bank_id = ? ORDER BY cc.updated_at DESC LIMIT 200`).bind(data.bankId).all<{ offer_name: string; category: string }>();
   try {
     const result = await c.env.AI.run('@cf/google/gemma-4-26b-a4b-it', {
-      messages: [{ role: 'user', content: [{ type: 'text', text: `Прочитай все предложения кэшбэка на изображении. Верни только JSON массив объектов {"name":"название на скриншоте","percentage":5,"category":"подходящая существующая категория или новая","notes":"лимит и важные условия"}. Не придумывай данные. Существующие категории: ${JSON.stringify(categories.results.map(x => x.name))}. Ранее пользователь исправил соответствия для этого банка: ${JSON.stringify(corrections.results)}. Используй эти исправления для совпадающих названий. Процент укажи числом без знака %. Не включай личные данные.` }, { type: 'image_url', image_url: { url: data.image } }] }], max_tokens: 2048, chat_template_kwargs: { enable_thinking: false },
+      messages: [{ role: 'user', content: [{ type: 'text', text: `Прочитай все предложения кэшбэка на изображении. Верни только JSON массив объектов {"name":"название на скриншоте","percentage":5,"category":"подходящая существующая категория или новая","notes":"лимит и важные условия"}. Не придумывай данные. Предложения для конкретного магазина, доставки, приложения или сервиса выделяй в отдельную конкретную категорию: «Дикси Доставка» не является общей категорией «Продукты», «Поезда в Т-Путешествиях» должны иметь категорию «Поезда в Т-Путешествиях», а не «Транспорт» или «Т-Путешествия», скидка WB не является всем шопингом. Не объединяй технику с ремонтом. Разные тарифы одного сервиса допускается относить к общей категории, но возвращай каждое предложение и его процент отдельно. Плюсы считай кэшбэком. Существующие категории: ${JSON.stringify(categories.results.map(x => x.name))}. Ранее пользователь исправил соответствия для этого банка: ${JSON.stringify(corrections.results)}. Используй эти исправления для совпадающих названий. Процент укажи числом без знака %. Не включай личные данные.` }, { type: 'image_url', image_url: { url: data.image } }] }], max_tokens: 2048, chat_template_kwargs: { enable_thinking: false },
     } as never) as { choices?: { message?: { content?: string } }[] };
     const raw = result.choices?.[0]?.message?.content ?? '';
     const match = raw.match(/\[[\s\S]*\]/);
@@ -78,8 +78,9 @@ app.post('/api/recognize', async (c) => {
       if (!item || typeof item !== 'object') return item;
       const row = item as Record<string, unknown>;
       const key = typeof row.name === 'string' ? row.name.trim().toLocaleLowerCase('ru') : '';
+      const specificCategory = /дикси\s+доставка/i.test(key) ? 'Дикси Доставка' : /поезд.*т[-\s]?путешеств/i.test(key) ? 'Поезда в Т-Путешествиях' : undefined;
       const percent = typeof row.percentage === 'string' ? Number(row.percentage.replace('%', '').replace(',', '.').trim()) : row.percentage;
-      return { ...row, percentage: percent, notes: typeof row.notes === 'string' ? row.notes : '', ...(correctionMap.has(key) ? { category: correctionMap.get(key) } : {}) };
+      return { ...row, percentage: percent, notes: typeof row.notes === 'string' ? row.notes : '', ...(correctionMap.has(key) ? { category: correctionMap.get(key) } : specificCategory ? { category: specificCategory } : {}) };
     });
     return c.json({ items: corrected });
   } catch { return c.json({ error: 'Распознавание недоступно. Проверьте квоту Workers AI и настройки модели.' }, 502); }

@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS cashback_entries (
   photo_local_key TEXT,
   notes TEXT NOT NULL DEFAULT '',
   created_at      TEXT DEFAULT (datetime('now')),
-  UNIQUE(bank_id, category_id, month, year)
+  offer_name TEXT NOT NULL DEFAULT '',
+  UNIQUE(bank_id, category_id, month, year, offer_name)
 );
 
 CREATE TABLE IF NOT EXISTS push_subscriptions (

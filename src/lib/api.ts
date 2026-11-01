@@ -33,6 +33,7 @@ export interface CashbackEntry {
   bank_name: string;
   category_name: string;
   notes: string;
+  offer_name: string;
 }
 
 export interface CategorySummary {
@@ -112,6 +113,7 @@ export const apiCashback = {
     year: number;
     photo_local_key?: string;
     notes?: string;
+    offer_name?: string;
   }) => request<CashbackEntry>('/cashback', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: number, percentage: number, photo_local_key?: string) =>
     request<CashbackEntry>(`/cashback/${id}`, { method: 'PUT', body: JSON.stringify({ percentage, photo_local_key }) }),
