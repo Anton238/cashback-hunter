@@ -37,3 +37,5 @@ export function categoryKind(name: string): string {
 const categoryOrder = ['supermarket', 'restaurant', 'taxi', 'pharmacy', 'carshare', 'transport', 'train', 'delivery', 'entertainment'];
 export function categoryPriority(name: string) { const i = categoryOrder.indexOf(categoryKind(name)); return i < 0 ? categoryOrder.length : i; }
 export function rateClass(rate: number) { return rate < 5 ? 'rate-low' : rate === 5 ? 'rate-mid' : 'rate-high'; }
+
+export function priorityCompare(a: number, b: number, order: number[]) { const ai = order.indexOf(a), bi = order.indexOf(b); return (ai < 0 ? order.length : ai) - (bi < 0 ? order.length : bi); }

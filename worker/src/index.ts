@@ -118,6 +118,20 @@ app.post('/api/category-corrections', async (c) => {
   return c.json({ success: true });
 });
 
+app.get('/api/display-settings', async (c) => {
+  const row = await c.env.DB.prepare('SELECT bank_ids, category_ids FROM display_settings WHERE id = 1').first<{ bank_ids: string; category_ids: string }>();
+  return c.json(row ? { bankIds: JSON.parse(row.bank_ids), categoryIds: JSON.parse(row.category_ids) } : { bankIds: [], categoryIds: [] });
+});
+
+app.put('/api/display-settings', async (c) => {
+  const body = await c.req.json().catch(() => null) as { bankIds?: unknown; categoryIds?: unknown } | null;
+  const valid = (v: unknown): v is number[] => Array.isArray(v) && v.length <= 500 && v.every(n => Number.isSafeInteger(n) && n > 0) && new Set(v).size === v.length;
+  if (!body || !valid(body.bankIds) || !valid(body.categoryIds)) return c.json({ error: 'Некорректные настройки приоритетов' }, 400);
+  await c.env.DB.prepare('INSERT INTO display_settings (id, bank_ids, category_ids) VALUES (1, ?, ?) ON CONFLICT(id) DO UPDATE SET bank_ids = excluded.bank_ids, category_ids = excluded.category_ids')
+    .bind(JSON.stringify(body.bankIds), JSON.stringify(body.categoryIds)).run();
+  return c.json({ bankIds: body.bankIds, categoryIds: body.categoryIds });
+});
+
 app.route('/api/banks', banks);
 app.route('/api/categories', categories);
 app.route('/api/synonyms', synonyms);

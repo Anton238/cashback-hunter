@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { bankPriority, bankKey, categoryPriority, categoryKind, rateClass } from '../src/lib/presentation.ts';
+import { bankPriority, bankKey, categoryPriority, categoryKind, rateClass, priorityCompare } from '../src/lib/presentation.ts';
 
 test('bank ties follow the requested priority including common names', () => {
   const names = ['Уралсиб', 'ОТП', 'Сбербанк', 'Озон', 'Яндекс', 'Tbank', 'Альфа'];
@@ -15,4 +15,10 @@ test('category ranking respects specific deliveries and trains', () => {
 });
 test('percentage colors switch at five', () => {
   assert.equal(rateClass(3), 'rate-low'); assert.equal(rateClass(5), 'rate-mid'); assert.equal(rateClass(10), 'rate-high');
+});
+
+test('custom priorities outrank unlisted items and preserve equal fallback', () => {
+  assert.ok(priorityCompare(7, 3, [7, 3]) < 0);
+  assert.ok(priorityCompare(3, 10, [7, 3]) < 0);
+  assert.equal(priorityCompare(10, 11, [7, 3]), 0);
 });

@@ -46,3 +46,9 @@ CREATE TABLE IF NOT EXISTS category_corrections (
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   PRIMARY KEY(bank_id, offer_key)
 );
+
+CREATE TABLE IF NOT EXISTS display_settings (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  bank_ids TEXT NOT NULL DEFAULT '[]',
+  category_ids TEXT NOT NULL DEFAULT '[]'
+);
