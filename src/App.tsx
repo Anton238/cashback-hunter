@@ -40,21 +40,23 @@ export function App() {
   async function upload(files: FileList | null) {
     if (!files?.length) return;
     setBusy('Читаем скриншоты…'); setError('');
+    let currentFile = '';
     try {
       let firstBank: number | undefined;
       for (const file of Array.from(files)) {
+        currentFile = file.name;
         if (file.size > 3_500_000 || !/image\/(jpeg|png|webp)/.test(file.type)) throw new Error('Поддерживаются JPEG, PNG и WebP до 3,5 МБ.');
         const result = await recognize(await fileToData(file));
         const photoId = uid();
         const detectedBank = result.bankId ?? 0;
         setPhotos(old => [...old, { id: photoId, name: file.name, bankId: detectedBank, suggestedBankId: result.bankId }]);
-        if (firstBank === undefined) firstBank = detectedBank;
+        if (firstBank === undefined) { firstBank = detectedBank; setReviewBank(detectedBank); }
         const parsed = result.items.filter(x => x && typeof x.category === 'string' && Number.isFinite(Number(x.percentage)) && Number(x.percentage) >= 0 && Number(x.percentage) <= 100).map(x => ({ id: uid(), bankId: detectedBank, photoId, category: x.category.trim(), suggestedCategory: x.category.trim(), name: String(x.name ?? x.category), percentage: Number(x.percentage), notes: String(x.notes ?? ''), selected: true }));
         setOffers(old => [...old, ...parsed]);
         if (!parsed.length) throw new Error('На одном из скриншотов не найдены категории. Добавьте их вручную.');
       }
       if (firstBank !== undefined) setReviewBank(firstBank);
-    } catch (e) { setError((e as Error).message); } finally { setBusy(''); }
+    } catch (e) { setError(`${currentFile ? `${currentFile}: ` : ''}${(e as Error).message}`); } finally { setBusy(''); }
   }
   function distribute() {
     const picked = optimize(offers.filter(o => o.category.trim()), limits);

@@ -2,6 +2,10 @@
 import { precacheAndRoute } from 'workbox-precaching';
 import { clientsClaim } from 'workbox-core';
 
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
 clientsClaim();
 precacheAndRoute(self.__WB_MANIFEST);
 
