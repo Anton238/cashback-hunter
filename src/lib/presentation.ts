@@ -6,6 +6,7 @@ const bankDefinitions = [
   { key: 'otp', match: /^(отп|otp)/i },
   { key: 'uralsib', match: /^(уралсиб|uralsib)/i },
   { key: 'alfa', match: /^(альфа|alfa|alpha)/i },
+  { key: 'wb', match: /^(wb[\s-]*(?:банк|bank)|вб[\s-]*банк|вайлдберриз[\s-]*банк|wildberries[\s-]*(?:банк|bank))/i },
   { key: 'vtb', match: /^(втб|vtb)/i },
   { key: 'gazprom', match: /^(газпром|gazprom)/i },
   { key: 'mts', match: /^(мтс|mts)/i },

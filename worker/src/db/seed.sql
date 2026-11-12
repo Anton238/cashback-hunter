@@ -8,4 +8,5 @@ INSERT OR IGNORE INTO banks (name) VALUES
   ('Зенит'),
   ('Газпром'),
   ('МТС'),
-  ('Уралсиб');
+  ('Уралсиб'),
+  ('WB Банк');

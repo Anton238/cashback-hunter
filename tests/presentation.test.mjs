@@ -22,3 +22,10 @@ test('custom priorities outrank unlisted items and preserve equal fallback', () 
   assert.ok(priorityCompare(3, 10, [7, 3]) < 0);
   assert.equal(priorityCompare(10, 11, [7, 3]), 0);
 });
+
+test('WB Bank has a local icon without misidentifying other banks', () => {
+  assert.equal(bankKey('WB Банк'), 'wb');
+  assert.equal(bankKey('WB Bank'), 'wb');
+  assert.equal(bankKey('ВБ Банк'), 'wb');
+  assert.equal(bankKey('ВТБ'), 'vtb');
+});
