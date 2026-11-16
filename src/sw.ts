@@ -8,6 +8,8 @@ self.addEventListener('message', (event) => {
 
 self.addEventListener('activate', event => { event.waitUntil(caches.delete('api-cache')); });
 
+self.addEventListener('install', () => self.skipWaiting());
+
 clientsClaim();
 precacheAndRoute(self.__WB_MANIFEST);
 
