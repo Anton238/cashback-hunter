@@ -58,3 +58,9 @@ Add `public/icons/icon-192.png` and `public/icons/icon-512.png` for the install 
 - `VITE_API_URL`: API base URL (optional; defaults to `/api` for same-origin or proxy).
 
 Worker (wrangler.toml / secrets): `FRONTEND_ORIGIN`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`.
+
+### Вход по коду
+
+Приложение и все приватные API требуют сессию входа. Код задаётся секретом Worker `ADMIN_PASSWORD` (`wrangler secret put ADMIN_PASSWORD` из `worker/`), в клиентскую сборку не попадает. Перед первым деплоем применяется `worker/migrations/0006_access_code.sql`. Устройство запоминается на 30 дней; «Выйти» отзывает сессию на сервере. Смена кода аннулирует старые сессии. На подбор кода действует лимит 10 попыток за 15 минут с одного IP. Авторизованные ответы не кешируются.
+
+Проверка: `node --experimental-strip-types --test tests/*.test.mjs`, `npm run build`, `cd worker && npx tsc --noEmit && npx wrangler deploy --dry-run`.

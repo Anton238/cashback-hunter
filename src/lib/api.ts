@@ -55,6 +55,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
   devLog('response', { path, status: res.status, ok: res.ok });
   if (!res.ok) {
+    if (res.status === 401 && !path.startsWith('/auth/')) window.dispatchEvent(new Event('cashback:locked'));
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error((err as { error: string }).error ?? res.statusText);
   }
@@ -176,4 +177,10 @@ export type DisplaySettings = { bankIds: number[]; categoryIds: number[] };
 export const apiDisplaySettings = {
   get: () => request<DisplaySettings>('/display-settings'),
   update: (settings: DisplaySettings) => request<DisplaySettings>('/display-settings', { method: 'PUT', body: JSON.stringify(settings) }),
+};
+
+export const apiAuth = {
+  session: () => request<{ authenticated: boolean }>('/auth/session'),
+  login: (password: string) => request<{ authenticated: boolean }>('/auth/login', { method: 'POST', body: JSON.stringify({ password }) }),
+  logout: () => request<{ ok: boolean }>('/auth/logout', { method: 'POST' }),
 };

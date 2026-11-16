@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { auth, requireSession } from './auth';
 import { cors } from 'hono/cors';
 import banks from './routes/banks';
 import categories from './routes/categories';
@@ -9,6 +10,7 @@ import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { handleCron } from './cron/notifications';
 
 interface Env {
+  ADMIN_PASSWORD?: string;
   DB: D1Database;
   AI: Ai;
   AI_LIMITER: { limit(input: { key: string }): Promise<{ success: boolean }> };
@@ -50,6 +52,9 @@ app.use('/api/*', async (c, next) => {
     credentials: true,
   })(c, next);
 });
+
+app.use('/api/*', requireSession);
+app.route('/api/auth', auth);
 
 app.post('/api/recognize', async (c) => {
   const client = c.req.header('CF-Connecting-IP') ?? 'unknown';

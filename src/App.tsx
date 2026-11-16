@@ -17,7 +17,7 @@ const fileToData = (file: File) => new Promise<string>((resolve, reject) => {
 });
 const fmt = (n: number) => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(n);
 
-export function App() {
+export function App({ onLock }: { onLock: () => void }) {
   const months = getThreeMonths();
   const [monthIndex, setMonthIndex] = useState(1);
   const month = months[monthIndex];
@@ -107,7 +107,7 @@ export function App() {
   }
   const current = offers.filter(o => o.bankId === reviewBank);
   return <div className="app">
-    <main><img className="hunter-icon" src="/hunter-icon.png" alt="" aria-hidden="true" />
+    <main>{screen === 'banks' && <button className="lock-button" onClick={onLock} aria-label="Выйти" title="Выйти">Выйти</button>}<img className="hunter-icon" src="/hunter-icon.png" alt="" aria-hidden="true" />
       {error && <div className="error" role="alert">{error}<button onClick={() => setError('')} aria-label="Закрыть">×</button></div>}
       {screen === 'home' && <><h1>Кэшбэки</h1>
         <div className="month-switch">{months.map((m,i) => <button key={m.label} className={i === monthIndex ? 'active' : ''} onClick={() => setMonthIndex(i)}><span>{i === 0 ? 'ПРОШЛЫЙ' : i === 1 ? 'ТЕКУЩИЙ' : 'СЛЕДУЮЩИЙ'}</span>{m.label.split(' ')[0]}</button>)}</div>
