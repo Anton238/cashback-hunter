@@ -64,3 +64,5 @@ Worker (wrangler.toml / secrets): `FRONTEND_ORIGIN`, `VAPID_PUBLIC_KEY`, `VAPID_
 Приложение и все приватные API требуют сессию входа. Код задаётся секретом Worker `ADMIN_PASSWORD` (`wrangler secret put ADMIN_PASSWORD` из `worker/`), в клиентскую сборку не попадает. Перед первым деплоем применяется `worker/migrations/0006_access_code.sql`. Устройство запоминается на 30 дней; «Выйти» отзывает сессию на сервере. Смена кода аннулирует старые сессии. На подбор кода действует лимит 10 попыток за 15 минут с одного IP. Авторизованные ответы не кешируются.
 
 Проверка: `node --experimental-strip-types --test tests/*.test.mjs`, `npm run build`, `cd worker && npx tsc --noEmit && npx wrangler deploy --dry-run`.
+
+Приложение также доступно на `https://cashback-hunter-api.antonsorokin238.workers.dev/`: Worker раздаёт ту же SPA и API с одного адреса, если Pages недоступен в сети. База, код входа и категории общие; сессия входа создаётся отдельно для каждого адреса. Для деплоя Worker сначала требуется `npm run build` в корне приложения. Загрузка кэшбэков имеет отдельные состояния ожидания и ошибки с повтором; пустой список показывается только после успешного ответа.

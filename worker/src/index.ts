@@ -11,6 +11,7 @@ import { handleCron } from './cron/notifications';
 
 interface Env {
   ADMIN_PASSWORD?: string;
+  ASSETS?: Fetcher;
   DB: D1Database;
   AI: Ai;
   AI_LIMITER: { limit(input: { key: string }): Promise<{ success: boolean }> };
@@ -28,7 +29,7 @@ const app = new Hono<{ Bindings: Env }>();
 app.use('/api/*', async (c, next) => {
   if (c.req.method === 'OPTIONS') return next();
   const origin = c.req.header('Origin');
-  if (origin && origin !== c.env.FRONTEND_ORIGIN) return c.json({ error: 'Forbidden origin' }, 403);
+  if (origin && origin !== c.env.FRONTEND_ORIGIN && origin !== new URL(c.req.url).origin) return c.json({ error: 'Forbidden origin' }, 403);
   const domain = c.env.ACCESS_TEAM_DOMAIN;
   const audience = c.env.ACCESS_AUD;
   // Public mode is intentional until Access is configured. Partial configuration fails closed.
@@ -46,7 +47,7 @@ app.use('/api/*', async (c, next) => {
 app.use('/api/*', async (c, next) => {
   const origin = c.env?.FRONTEND_ORIGIN ?? 'http://localhost:5173';
   return cors({
-    origin: [origin, 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:4173'],
+    origin: [origin, new URL(c.req.url).origin, 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:4173'],
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type'],
     credentials: true,
@@ -145,7 +146,10 @@ app.route('/api/push', push);
 
 app.get('/api/health', (c) => c.json({ ok: true }));
 
-app.notFound((c) => c.json({ error: 'Not found' }, 404));
+app.notFound(c => {
+  if (c.env.ASSETS && !c.req.path.startsWith('/api/') && ['GET', 'HEAD'].includes(c.req.method)) return c.env.ASSETS.fetch(c.req.raw);
+  return c.json({ error: 'Not found' }, 404);
+});
 
 app.onError((err, c) => {
   console.error(err);

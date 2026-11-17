@@ -48,11 +48,17 @@ export interface CategorySummary {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const url = `${API_BASE}${path}`;
   devLog('request', { path, url });
-  const res = await fetch(url, {
+  let res: Response;
+  try { res = await fetch(url, {
     ...init,
     credentials: 'include',
+    signal: init?.signal ?? AbortSignal.timeout(path === '/recognize' ? 90000 : 15000),
+    cache: 'no-store',
     headers: { 'Content-Type': 'application/json', ...init?.headers },
-  });
+  }); } catch (error) {
+    if ((error as Error).name === 'TimeoutError' || (error as Error).name === 'AbortError') throw new Error('Сервер не отвечает. Проверь подключение и повтори.');
+    throw new Error('Не удалось связаться с сервером. Проверь подключение и повтори.');
+  }
   devLog('response', { path, status: res.status, ok: res.ok });
   if (!res.ok) {
     if (res.status === 401 && !path.startsWith('/auth/')) window.dispatchEvent(new Event('cashback:locked'));

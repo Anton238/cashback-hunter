@@ -28,3 +28,10 @@ namespace_id = "1001"
 [ratelimits.simple]
 limit = 10
 period = 60
+
+# Same-origin frontend on workers.dev also works when Pages is unreachable.
+[assets]
+directory = "../dist"
+binding = "ASSETS"
+run_worker_first = true
+not_found_handling = "single-page-application"

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { apiBanks, apiCashback, apiCategories, type Bank, type CashbackEntry, type Category, recognize, saveCorrection, apiPush, apiDisplaySettings, type DisplaySettings } from './lib/api';
 import { getThreeMonths } from './lib/months';
 import { usePush } from './hooks/usePush';
@@ -33,11 +33,23 @@ export function App({ onLock }: { onLock: () => void }) {
   const [settingsLoading, setSettingsLoading] = useState(true), [settingsSaving, setSettingsSaving] = useState(false), [settingsReady, setSettingsReady] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [photos, setPhotos] = useState<{ id: string; name: string; bankId: number; suggestedBankId: number | null }[]>([]);
+  const [dataStatus, setDataStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [dataError, setDataError] = useState('');
+  const refreshSequence = useRef(0);
   async function refresh() {
+    const sequence = ++refreshSequence.current;
+    setDataStatus('loading'); setDataError('');
+    try {
     const [b, c, e] = await Promise.all([apiBanks.list(), apiCategories.list(), apiCashback.list(month.month, month.year)]);
+    if (sequence !== refreshSequence.current) return;
     setBanks(b); setCategories(c); setEntries(e); setBankId(old => old || b[0]?.id || 0);
+    setDataStatus('ready');
+    } catch (error) {
+      if (sequence === refreshSequence.current) { setDataStatus('error'); setDataError((error as Error).message); }
+      throw error;
+    }
   }
-  useEffect(() => { refresh().catch(e => setError(e.message)); }, [month.month, month.year]);
+  useEffect(() => { refresh().catch(() => {}); return () => { refreshSequence.current++; }; }, [month.month, month.year]);
   useEffect(() => { apiDisplaySettings.get().then(settings => { setDisplaySettings(settings); setSettingsReady(true); }).catch(e => setError(`Не удалось загрузить приоритеты: ${e.message}`)).finally(() => setSettingsLoading(false)); }, []);
   const orderedBanks = useMemo(() => [...banks].sort((a, b) => priorityCompare(a.id, b.id, displaySettings.bankIds) || bankPriority(a.name) - bankPriority(b.name) || a.name.localeCompare(b.name, 'ru')), [banks, displaySettings.bankIds]);
   const orderedCategories = useMemo(() => [...categories].sort((a, b) => priorityCompare(a.id, b.id, displaySettings.categoryIds) || categoryPriority(a.name) - categoryPriority(b.name) || a.name.localeCompare(b.name, 'ru')), [categories, displaySettings.categoryIds]);
@@ -111,10 +123,12 @@ export function App({ onLock }: { onLock: () => void }) {
       {error && <div className="error" role="alert">{error}<button onClick={() => setError('')} aria-label="Закрыть">×</button></div>}
       {screen === 'home' && <><h1>Кэшбэки</h1>
         <div className="month-switch">{months.map((m,i) => <button key={m.label} className={i === monthIndex ? 'active' : ''} onClick={() => setMonthIndex(i)}><span>{i === 0 ? 'ПРОШЛЫЙ' : i === 1 ? 'ТЕКУЩИЙ' : 'СЛЕДУЮЩИЙ'}</span>{m.label.split(' ')[0]}</button>)}</div>
-        <div className="section-line"><div><h2>Категории <span className="count">{grouped.length}</span></h2></div><button className="round-add" onClick={() => { setMonthIndex(monthIndex === 0 ? 1 : monthIndex); setScreen('add'); }}>＋</button></div>
+        <div className="section-line"><div><h2>Категории <span className="count">{dataStatus === 'ready' ? grouped.length : '…'}</span></h2></div><button className="round-add" onClick={() => { setMonthIndex(monthIndex === 0 ? 1 : monthIndex); setScreen('add'); }}>＋</button></div>
         <input className="search" placeholder="⌕  Найти категорию" value={query} onChange={e => setQuery(e.target.value)} aria-label="Поиск категории"/>
-        <div className="cards">{grouped.map(([name, rows]) => { const sorted = [...rows].sort((a,b) => b.percentage-a.percentage || priorityCompare(a.bank_id, b.bank_id, displaySettings.bankIds) || bankPriority(a.bank_name)-bankPriority(b.bank_name)); return <article className="cash-card" key={name}><div className="card-main"><CategoryMark name={name}/><div className="card-title"><h3>{name}</h3></div><BankMark name={sorted[0].bank_name}/><strong className={`rate ${rateClass(sorted[0].percentage)}`}>{fmt(sorted[0].percentage)}<small>%</small></strong></div><div className="card-details">{sorted.map(e => <div key={e.id}><span>{e.bank_name} · {fmt(e.percentage)}% {e.offer_name && e.offer_name.toLocaleLowerCase('ru') !== name.toLocaleLowerCase('ru') && `· ${e.offer_name}`} {e.notes && `— ${e.notes}`}</span><button onClick={async () => { if (confirm('Удалить этот кэшбэк?')) { try { await apiCashback.delete(e.id); await refresh(); } catch (err) { setError((err as Error).message); } } }} aria-label={`Удалить ${e.bank_name}`}>×</button></div>)}</div></article>; })}</div>
-        {!grouped.length && !error && <div className="empty"><span>✳</span><h3>Пока ничего нет</h3><p>Добавьте категории или скриншоты.</p><button className="primary" onClick={() => { setMonthIndex(monthIndex === 0 ? 1 : monthIndex); setScreen('add'); }}>Добавить кэшбэк</button></div>}
+        <div className="cards">{dataStatus === 'ready' && grouped.map(([name, rows]) => { const sorted = [...rows].sort((a,b) => b.percentage-a.percentage || priorityCompare(a.bank_id, b.bank_id, displaySettings.bankIds) || bankPriority(a.bank_name)-bankPriority(b.bank_name)); return <article className="cash-card" key={name}><div className="card-main"><CategoryMark name={name}/><div className="card-title"><h3>{name}</h3></div><BankMark name={sorted[0].bank_name}/><strong className={`rate ${rateClass(sorted[0].percentage)}`}>{fmt(sorted[0].percentage)}<small>%</small></strong></div><div className="card-details">{sorted.map(e => <div key={e.id}><span>{e.bank_name} · {fmt(e.percentage)}% {e.offer_name && e.offer_name.toLocaleLowerCase('ru') !== name.toLocaleLowerCase('ru') && `· ${e.offer_name}`} {e.notes && `— ${e.notes}`}</span><button onClick={async () => { if (confirm('Удалить этот кэшбэк?')) { try { await apiCashback.delete(e.id); await refresh(); } catch (err) { setError((err as Error).message); } } }} aria-label={`Удалить ${e.bank_name}`}>×</button></div>)}</div></article>; })}</div>
+        {dataStatus === 'loading' && <div className="load-state" role="status">Загружаем кэшбэки…</div>}
+        {dataStatus === 'error' && <div className="load-state" role="alert"><h3>Не удалось загрузить кэшбэки</h3><p>{dataError}</p><button className="secondary" onClick={() => { refresh().catch(() => {}); }}>Повторить</button></div>}
+        {dataStatus === 'ready' && !grouped.length && !error && <div className="empty"><span>✳</span><h3>Пока ничего нет</h3><p>Добавьте категории или скриншоты.</p><button className="primary" onClick={() => { setMonthIndex(monthIndex === 0 ? 1 : monthIndex); setScreen('add'); }}>Добавить кэшбэк</button></div>}
         </>}
       {screen === 'add' && <><h1>Добавить КБ</h1>
         <div className="segment"><button className={mode === 'selected' ? 'active' : ''} onClick={() => setMode('selected')}>Уже выбраны</button><button className={mode === 'arrange' ? 'active' : ''} onClick={() => setMode('arrange')}>Помочь выбрать</button></div>
